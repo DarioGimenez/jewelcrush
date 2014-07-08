@@ -26,6 +26,7 @@ package states.game
 		public static const TYPE_LINE_CLEANER:String = "A_BallLineCleaner";
 		public static const TYPE_COLOUR_CLEANER:String = "A_BallColourCleaner";
 		public static const TYPE_CHANGE_TYPE:String = "A_BallChangeType";
+		public static const TYPE_POINTER:String = "A_BallPointer";
 		
 		private var _ballType:String;
 

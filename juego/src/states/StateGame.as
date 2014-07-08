@@ -58,6 +58,7 @@ package states
 		private var _btnBoosterBomb:J2DM_GenericCheckBoxWithText;
 		private var _btnBoosterColor:J2DM_GenericCheckBoxWithText;
 		private var _btnBoosterChangeType:J2DM_GenericCheckBoxWithText;
+		private var _btnBoosterPointer:J2DM_GenericCheckBoxWithText;
 		
 		private var _ballFx:TimelineLite;
 		private var _moveBallFx:TweenLite;
@@ -86,6 +87,8 @@ package states
 		private var _currentLevel:Level;
 		
 		private var _actionType:int;
+		private var _activePointer:Boolean;
+		private var _pointer:MovieClip;
 		
 		public function StateGame(params:J2DM_AbstractStateParameters)
 		{
@@ -290,6 +293,19 @@ package states
 			_btnBoosterChangeType = new J2DM_GenericCheckBoxWithText("btype", clip, "T", "", boosterCallback);
 			_btnBoosterChangeType.disabledAlpha = 1;
 			
+			//booster pointer
+			clip = new A_BoosterButton();
+			clip.x = _btnBoosterChangeType.source.x + _btnBoosterChangeType.source.width + 15;
+			clip.y = J2DM_Stage.getInstance().realStage.stageHeight - clip.height - 15;
+			_container.addChild(clip);
+			
+			_btnBoosterPointer = new J2DM_GenericCheckBoxWithText("bpointer", clip, "P", "", boosterCallback);
+			_btnBoosterPointer.disabledAlpha = 1;
+			
+			//pointer
+			_pointer = new A_Pointer();
+			_container.addChild(_pointer);
+			
 			//window
 			_window = new GenericWindow();
 			_window.addEventListener(GenericWindow.EVENT_WINDOW_ACTION, windowButtonEvent);
@@ -387,12 +403,41 @@ package states
 			_trailCanvas.graphics.moveTo(_ball.initialPos.x, (_ball.initialPos.y - 50));
 			_trailCanvas.graphics.lineStyle(2);
 			_trailCanvas.graphics.lineTo(_ball.x, _ball.y);
+			
+			updatePointer();
+		}
+		
+		private function updatePointer():void
+		{
+			_pointer.visible = _activePointer;
+			
+			var data:Object = getFinalPosition();
+			_pointer.x = _ball.initialPos.x + data.offsetX;
+			_pointer.y = _ball.initialPos.y - data.offsetY;
 		}
 		
 		private function releaseBall():void
 		{
+			_pointer.visible = false;
 			_trailCanvas.graphics.clear();
 			
+			var data:Object = getFinalPosition();
+			
+			_moveBallFx = new TweenLite(_ball, data.time, { x:_ball.initialPos.x + data.offsetX, y:_ball.initialPos.y - data.offsetY, onComplete:ballHitCell } );
+			_scaleBallFx = new TweenLite(_ball, data.time/2, { scaleX:2, scaleY:2, onComplete:function():void{ _scaleBallFx.reverse(); } })
+			
+			_ballFx = new TimelineLite();
+			_ballFx.insertMultiple([_moveBallFx, _scaleBallFx], 0);
+			
+			_ball.dragEnable = false;
+			
+			if(GameData.instance.musicActive)
+			{
+				_releaseBallFx.play();
+			}
+		}
+		private function getFinalPosition():Object
+		{
 			var offsetX:int = (_ball.x - _ball.initialPos.x) * -1;
 			if(_ball.ballType == Ball.TYPE_HEAVY)
 			{
@@ -426,18 +471,12 @@ package states
 				time *= 0.75;
 			}
 			
-			_moveBallFx = new TweenLite(_ball, time, { x:_ball.initialPos.x + offsetX, y:_ball.initialPos.y - offsetY, onComplete:ballHitCell } );
-			_scaleBallFx = new TweenLite(_ball, time/2, { scaleX:2, scaleY:2, onComplete:function():void{ _scaleBallFx.reverse(); } })
+			var data:Object = new Object();
+			data.offsetX = offsetX;
+			data.offsetY = offsetY;
+			data.time = time;
 			
-			_ballFx = new TimelineLite();
-			_ballFx.insertMultiple([_moveBallFx, _scaleBallFx], 0);
-			
-			_ball.dragEnable = false;
-			
-			if(GameData.instance.musicActive)
-			{
-				_releaseBallFx.play();
-			}
+			return data;
 		}
 		
 		private function showFlyingScore():void
@@ -542,6 +581,10 @@ package states
 					_ball.ballType = type;
 					
 					break;
+				case Ball.TYPE_POINTER:
+					_activePointer = true;
+					
+					break;
 			}
 		}
 		
@@ -551,6 +594,7 @@ package states
 			_btnBoosterBomb.enabled = false;
 			_btnBoosterColor.enabled = false;
 			_btnBoosterChangeType.enabled = false;
+			_btnBoosterPointer.enabled = false;
 		}
 		
 		private function resetBoosters():void
@@ -566,7 +610,11 @@ package states
 			
 			_btnBoosterChangeType.enabled = true;
 			_btnBoosterChangeType.checked = false;
-
+			
+			_btnBoosterPointer.enabled = true;
+			_btnBoosterPointer.checked = false;
+			
+			_activePointer = false;
 		}
 		
 		private function windowButtonEvent(event:Event):void
@@ -611,6 +659,10 @@ package states
 							break;
 						case _btnBoosterChangeType:
 							activateBooster(Ball.TYPE_CHANGE_TYPE);
+							
+							break;
+						case _btnBoosterPointer:
+							activateBooster(Ball.TYPE_POINTER);
 							
 							break;
 					}
