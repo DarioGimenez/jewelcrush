@@ -1,0 +1,28 @@
+Jewel Crasher
+
+http://www.ferryhalim.com/orisinal/g3/bauns.htm
+
+El juego toma la mecánica del juego Bauns, de Orisinal, y mejora el gameplay.
+
+Puntos fuertes:
+- Tipos de juego:
+	- Classic: Endless, cada nivel requiere 10% mas de puntos que el anterior.
+	- Time Attack: 100 puntos en menos de 10 segundos a tablero completo.
+	- Quest: 100 pts en menos de 10 tiros, no fallar ningun tiro, golpear solo las rojas, etc.
+
+- Tipos de bola:
+	- Ligther Ball
+	- Normal Ball
+	- Heavy Ball
+	- Bouncy Ball: Al golpear una celda, rebota aleatoriamente x cantidad de veces.
+	- Color Ball: Solo elimina celdas del mismo color de la bola.
+
+- Tipos de jewels:
+	- Colores clásicos
+	- Comodin: Al golpearlas cambian a todas la adjayentes del mismo color.
+	- Bomba: Al golpearla destruye todas las adyacentes.
+
+- Dificultad:
+	- Distintos puntos de tiro.
+	- Distintos tipos de bolas.
+	- Celdas bloqueadas: Las celdas bloqueadas no pueden ser golpeadas. Pero pueden ser eliminadas si es golpeada una adyacente del mismo color.
