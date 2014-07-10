@@ -10,13 +10,16 @@ package states.game
 	
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
+	import flash.events.EventDispatcher;
 	import flash.geom.Point;
 	import flash.media.Sound;
 	
 	import states.StateGame;
 
-	public class Board
+	public class Board extends EventDispatcher
 	{
+		public static const EVENT_BOARD_IS_FULL:String = "board_is_full";
+		
 		public static const BOARD_MAX_W:int = 10;
 		public static const BOARD_MAX_H:int = 10;
 		
@@ -25,7 +28,6 @@ package states.game
 		
 		private var _container:Sprite;
 
-		private var _boardIsFullCallback:Function;
 		private var _cells:Vector.<Vector.<BoardCell>>;
 		private var _selectedCells:Vector.<BoardCell>;
 		
@@ -36,10 +38,9 @@ package states.game
 		
 		private var _hitCellFx:Sound;
 		
-		public function Board(container:Sprite, boardIsFullCallback:Function)
+		public function Board(container:Sprite)
 		{
 			_container = container;
-			_boardIsFullCallback = boardIsFullCallback;
 			
 			build();
 		}
@@ -62,7 +63,7 @@ package states.game
 		{
 			if(boardIsFull())
 			{
-				_boardIsFullCallback();
+				dispatchEvent(new CustomEvent(EVENT_BOARD_IS_FULL));
 				return;
 			}
 			
@@ -274,7 +275,6 @@ package states.game
 		private function applyBoosterChangeType(cell:BoardCell):void
 		{
 			var auxCells:Vector.<BoardCell> = getAdyacentCells(cell, 2);
-			trace(auxCells.length);
 			for each(var auxCell:BoardCell in auxCells)
 			{
 				if(auxCell.jewel != null)

@@ -1,7 +1,10 @@
 package states.game
 {
+	import event.CustomEvent;
+	
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
+	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
@@ -14,6 +17,9 @@ package states.game
 	
 	public class Ball extends MovieClip implements IMouseStage
 	{
+		public static const EVENT_TRAIL_BALL:String = "trail_ball";
+		public static const EVENT_RELEASE_BALL:String = "release_ball";
+		
 		public static const TYPE_LIGHTER:String = "A_BallLighter";
 		public static const TYPE_CLASSIC:String = "A_BallClassic";
 		public static const TYPE_HEAVY:String = "A_BallHeavy";
@@ -30,8 +36,6 @@ package states.game
 		
 		private var _ballType:String;
 
-		private var _trailCallback:Function;
-		private var _releaseCallback:Function;
 		private var _btnBall:J2DM_GenericDragButton;
 		
 		private var _pressed:Boolean;
@@ -39,11 +43,9 @@ package states.game
 		private var _initX:int;
 		private var _initY:int;
 		
-		public function Ball(type:String, rect:Rectangle, trailCallback:Function, releaseCallback:Function)
+		public function Ball(type:String, rect:Rectangle)
 		{
-			ballType = type;
-			_trailCallback = trailCallback;
-			_releaseCallback = releaseCallback;
+			ballType = type; 
 			
 			_btnBall = new J2DM_GenericDragButton("ball", this, rect, buttonCallback);
 			_btnBall.disabledAlpha = 1;
@@ -54,8 +56,6 @@ package states.game
 		public function destroy():void
 		{
 			_btnBall.destroy();
-			_trailCallback = null;
-			_releaseCallback = null;
 		}
 		
 		public function mouseDownStage(position:Point):void
@@ -153,12 +153,12 @@ package states.game
 		
 		private function updateBallTrail():void
 		{
-			_trailCallback();
+			dispatchEvent(new CustomEvent(EVENT_TRAIL_BALL));
 		}
 		
 		private function releaseBall():void
 		{
-			_releaseCallback();
+			dispatchEvent(new CustomEvent(EVENT_RELEASE_BALL));
 			_pressed = false;
 		}
 		

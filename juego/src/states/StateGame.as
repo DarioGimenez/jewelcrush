@@ -100,6 +100,13 @@ package states
 			J2DM_Stage.getInstance().removeElement(_container, J2DM_StageLayerTypes.INTERFACE);
 			J2DM_InputMouse.getInstance().unsuscribeStage(this);
 			
+			_board.removeEventListener(Board.EVENT_BOARD_IS_FULL, onBoardEvent);
+			
+			_ball.removeEventListener(Ball.EVENT_RELEASE_BALL, onBallEvents);
+			_ball.removeEventListener(Ball.EVENT_TRAIL_BALL, onBallEvents);
+			
+			_window.removeEventListener(GenericWindow.EVENT_WINDOW_ACTION, windowButtonEvent);
+			
 			_window.destroy();
 			_ball.destroy();
 			_board.destroy();
@@ -192,12 +199,15 @@ package states
 			_jewelContainer.y = frame.y;
 			_container.addChild(_jewelContainer);
 			
-			_board = new Board(_jewelContainer, gameOver);
+			_board = new Board(_jewelContainer);
+			_board.addEventListener(Board.EVENT_BOARD_IS_FULL, onBoardEvent);
 			
 			var rect:Rectangle = new Rectangle(frame.x + 10, frame.y + frame.height + 50, frame.width - 10, 200);
 			var ballx:int = frame.width / 2 + frame.x;
 			var bally:int = frame.y + frame.height + 50;
-			_ball = new Ball(Ball.TYPE_CLASSIC, rect, trailBall, releaseBall);
+			_ball = new Ball(Ball.TYPE_CLASSIC, rect);
+			_ball.addEventListener(Ball.EVENT_TRAIL_BALL, onBallEvents);
+			_ball.addEventListener(Ball.EVENT_RELEASE_BALL, onBallEvents);
 			_ball.initialPos = new Point(ballx, bally);
 			_container.addChild(_ball);
 			
@@ -263,7 +273,7 @@ package states
 			clip.y = J2DM_Stage.getInstance().realStage.stageHeight - clip.height - 15;
 			_container.addChild(clip);
 			
-			_btnBoosterLineCleaner = new J2DM_GenericCheckBoxWithText("bLineCleaner", clip, "LC", "", boosterCallback);
+			_btnBoosterLineCleaner = new J2DM_GenericCheckBoxWithText("bLineCleaner", clip, "1", "", boosterCallback);
 			_btnBoosterLineCleaner.disabledAlpha = 1;
 			
 			//booster bomb
@@ -272,7 +282,7 @@ package states
 			clip.y = J2DM_Stage.getInstance().realStage.stageHeight - clip.height - 15;
 			_container.addChild(clip);
 			
-			_btnBoosterBomb = new J2DM_GenericCheckBoxWithText("bbomb", clip, "B", "", boosterCallback);
+			_btnBoosterBomb = new J2DM_GenericCheckBoxWithText("bbomb", clip, "2", "", boosterCallback);
 			_btnBoosterBomb.disabledAlpha = 1;
 			
 			//booster color
@@ -281,7 +291,7 @@ package states
 			clip.y = J2DM_Stage.getInstance().realStage.stageHeight - clip.height - 15;
 			_container.addChild(clip);
 			
-			_btnBoosterColor = new J2DM_GenericCheckBoxWithText("bcolor", clip, "C", "", boosterCallback);
+			_btnBoosterColor = new J2DM_GenericCheckBoxWithText("bcolor", clip, "3", "", boosterCallback);
 			_btnBoosterColor.disabledAlpha = 1;
 			
 			//booster change type
@@ -290,7 +300,7 @@ package states
 			clip.y = J2DM_Stage.getInstance().realStage.stageHeight - clip.height - 15;
 			_container.addChild(clip);
 			
-			_btnBoosterChangeType = new J2DM_GenericCheckBoxWithText("btype", clip, "T", "", boosterCallback);
+			_btnBoosterChangeType = new J2DM_GenericCheckBoxWithText("btype", clip, "4", "", boosterCallback);
 			_btnBoosterChangeType.disabledAlpha = 1;
 			
 			//booster pointer
@@ -299,11 +309,12 @@ package states
 			clip.y = J2DM_Stage.getInstance().realStage.stageHeight - clip.height - 15;
 			_container.addChild(clip);
 			
-			_btnBoosterPointer = new J2DM_GenericCheckBoxWithText("bpointer", clip, "P", "", boosterCallback);
+			_btnBoosterPointer = new J2DM_GenericCheckBoxWithText("bpointer", clip, "5", "", boosterCallback);
 			_btnBoosterPointer.disabledAlpha = 1;
 			
 			//pointer
 			_pointer = new A_Pointer();
+			_pointer.visible = false;
 			_container.addChild(_pointer);
 			
 			//window
@@ -637,6 +648,28 @@ package states
 			}
 			
 		}
+		
+		private function onBoardEvent(e:Event):void
+		{
+			gameOver();
+		}
+		
+		private function onBallEvents(e:Event):void
+		{
+			switch(e.type)
+			{
+				case Ball.EVENT_TRAIL_BALL:
+					trailBall();
+					
+					break;
+				
+				case Ball.EVENT_RELEASE_BALL:
+					releaseBall();
+					
+					break;
+			}
+		}
+			
 		
 		private function boosterCallback(type:String, button:J2DM_GenericButton):void
 		{
