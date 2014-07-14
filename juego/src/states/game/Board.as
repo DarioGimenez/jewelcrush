@@ -20,7 +20,7 @@ package states.game
 	{
 		public static const EVENT_BOARD_IS_FULL:String = "board_is_full";
 		
-		public static const BOARD_MAX_W:int = 10;
+		public static const BOARD_MAX_W:int = 9;
 		public static const BOARD_MAX_H:int = 10;
 		
 		public static const BOARD_CELL_W:int = 50;
@@ -59,7 +59,7 @@ package states.game
 			_selectedCells.length = 0;
 		}
 		
-		public function addNewLines(linesY:int, linesX:int):void
+		public function addNewLines(linesY:int):void
 		{
 			if(boardIsFull())
 			{
@@ -71,7 +71,7 @@ package states.game
 			var cell:BoardCell;
 			for(var i:int = 0; i < linesY; i++)
 			{
-				for(var j:int = 0; j < linesX; j++)
+				for(var j:int = 0; j < BOARD_MAX_W; j++)
 				{
 					//creo y posiciono el item
 					jewel = getRandomJewel();
@@ -92,7 +92,7 @@ package states.game
 		
 		public function fillBoard():void
 		{
-			addNewLines(BOARD_MAX_H, BOARD_MAX_W);
+			addNewLines(BOARD_MAX_H);
 		}
 		
 		public function hitCell(hitPos:Point, ballType:String):void

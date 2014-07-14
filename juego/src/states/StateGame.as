@@ -44,6 +44,10 @@ package states
 	
 	public class StateGame extends J2DM_AbstractState implements IMouseStage
 	{	
+		public static const GAME_MODE_CLASSIC:int = 0;
+		public static const GAME_MODE_QUEST:int = 1;
+		public static const GAME_MODE_BOSS:int = 2;
+		
 		public static const ACTION_TYPE_GAME_OVER:int = 0;
 		public static const ACTION_TYPE_LEVEL_COMPLETE:int = 1;
 		public static const ACTION_TYPE_GAME_MODE_COMPLETE:int = 2;
@@ -190,8 +194,10 @@ package states
 			_container.addChild(bg);
 			
 			var frame:MovieClip = new A_Frame();
-			frame.x = 50;
+			frame.x = 100;
 			frame.y = 50;
+			frame.width = Board.BOARD_CELL_W * Board.BOARD_MAX_W;
+			frame.height = Board.BOARD_CELL_H * Board.BOARD_MAX_H;
 			_container.addChild(frame);
 			
 			_jewelContainer = new Sprite();
@@ -350,7 +356,7 @@ package states
 		{
 			_currentLevel = GameData.instance.getCurrentLevel();
 			
-			_board.addNewLines(_currentLevel.initialLines, Board.BOARD_MAX_H);
+			_board.addNewLines(_currentLevel.initialLines);
 			_lastTimer = getTimer();
 			
 			_ball.ballType = getRandomBallType();
@@ -405,7 +411,7 @@ package states
 		
 		private function addlines():void
 		{
-			_board.addNewLines(1, 10);
+			_board.addNewLines(1);
 		}
 		
 		private function trailBall():void
