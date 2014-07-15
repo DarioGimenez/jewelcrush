@@ -81,7 +81,7 @@ package states
 			var btn:J2DM_GenericButtonWithText;
 			var yy:int = 0;
 			var xx:int = 0;
-			for(var i:int = 0; i < GameData.instance.geGameModeLevels().length; i++)
+			for(var i:int = 0; i < GameData.instance.getGameModeLevels().length; i++)
 			{
 				yy = i / MAX_BUTTONS;
 				

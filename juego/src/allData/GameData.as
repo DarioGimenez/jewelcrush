@@ -45,13 +45,13 @@ package allData
 		
 		public function getCurrentLevel():Level
 		{
-			var level:Level = Levels.ALL_LEVELS[gameMode][currentLevel];
+			var level:Level = new Level(Levels.LEVELS.level[currentLevel])
 			return level;
 		}
 		
-		public function geGameModeLevels():Vector.<Level>
+		public function getGameModeLevels():Vector.<Level>
 		{
-			var levels:Vector.<Level> = Levels.ALL_LEVELS[gameMode];
+			var levels:Vector.<Level> = Levels.LEVELS.level;
 			return levels;
 		}
 	}

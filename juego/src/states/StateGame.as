@@ -43,11 +43,7 @@ package states
 	import ui.GenericWindow;
 	
 	public class StateGame extends J2DM_AbstractState implements IMouseStage
-	{	
-		public static const GAME_MODE_CLASSIC:int = 0;
-		public static const GAME_MODE_QUEST:int = 1;
-		public static const GAME_MODE_BOSS:int = 2;
-		
+	{		
 		public static const ACTION_TYPE_GAME_OVER:int = 0;
 		public static const ACTION_TYPE_LEVEL_COMPLETE:int = 1;
 		public static const ACTION_TYPE_GAME_MODE_COMPLETE:int = 2;
@@ -144,6 +140,7 @@ package states
 			}
 			
 			// score
+			/*
 			if(GameData.instance.gameMode != GameData.GAME_MODE_ENDLESS)
 			{
 				var completePercent:Number = (_score * 100 / _currentLevel.goalScore) / 100;
@@ -160,6 +157,7 @@ package states
 				TweenLite.killTweensOf(_scoreBar);
 				TweenLite.to(_scoreBar, 0.25, { scaleX: completePercent });
 			}
+			*/
 		}
 		
 		public function mouseDownStage(position:Point):void
@@ -360,6 +358,7 @@ package states
 			_lastTimer = getTimer();
 			
 			_ball.ballType = getRandomBallType();
+			_leftTimer = _currentLevel.newLineTimer;
 			
 			_isPlaying = true;
 		}
@@ -542,7 +541,8 @@ package states
 		{
 			_isPlaying = false;
 			
-			if(GameData.instance.currentLevel + 1 >= GameData.instance.geGameModeLevels().length)
+			/*
+			if(GameData.instance.currentLevel + 1 >= GameData.instance.getGameModeLevels().length)
 			{
 				var gameMode:String;
 				switch(GameData.instance.gameMode)
@@ -568,6 +568,7 @@ package states
 				
 				return;
 			}
+			*/
 			
 			_actionType = ACTION_TYPE_LEVEL_COMPLETE;
 			_window.setText("Level\nComplete");

@@ -201,7 +201,6 @@ package states.game
 		
 		private function checkBooster(ballType:String):Boolean
 		{
-			trace(ballType, Ball.TYPE_CHANGE_TYPE);
 			return (
 				ballType == Ball.TYPE_BOMB || 
 				ballType == Ball.TYPE_COLOUR_CLEANER ||
