@@ -65,7 +65,6 @@ package states
 		private var _scaleBallFx:TweenLite;
 		
 		private var _timeBar:Sprite;
-		private var _scoreBar:Sprite;
 		
 		private var _flyingScoreCont:Sprite;
 		private var _flyingScore:GenericTextfield;
@@ -138,26 +137,6 @@ package states
 				_leftTimer = _currentLevel.newLineTimer;
 				addlines();
 			}
-			
-			// score
-			/*
-			if(GameData.instance.gameMode != GameData.GAME_MODE_ENDLESS)
-			{
-				var completePercent:Number = (_score * 100 / _currentLevel.goalScore) / 100;
-				if(completePercent > 1)
-				{
-					completePercent = 1;
-				}
-				
-				if(completePercent == 1)
-				{
-					levelComplete();
-				}
-				
-				TweenLite.killTweensOf(_scoreBar);
-				TweenLite.to(_scoreBar, 0.25, { scaleX: completePercent });
-			}
-			*/
 		}
 		
 		public function mouseDownStage(position:Point):void
@@ -228,40 +207,13 @@ package states
 			_timeBar.y = frame.y - 12;
 			_container.addChild(_timeBar);
 			
-			var scoreBarBg:Sprite = createBar(frame.width, 10, 0x00FF00, 0.25);
-			scoreBarBg.x = frame.x;
-			scoreBarBg.y = frame.y - 24;
-			_container.addChild(scoreBarBg);
-			
-			_scoreBar = createBar(frame.width, 10, 0x00FF00, 1);
-			_scoreBar.x = frame.x;
-			_scoreBar.y = frame.y - 24;
-			_container.addChild(_scoreBar);
-			
 			//score tf
-			var tfScoreLabel:GenericTextfield = new GenericTextfield(new A_Font1().fontName, 0xFFFFFF, TextFieldAutoSize.LEFT, 30);
-			tfScoreLabel.text = "SCORE";
-			tfScoreLabel.x = frame.x;
-			tfScoreLabel.y = _scoreBar.y - tfScoreLabel.height / 2 - 5;
-			_container.addChild(tfScoreLabel);
-			
-			//score tf
-			_tfScore = new GenericTextfield(new A_Font1().fontName, 0xFFFFFF, TextFieldAutoSize.LEFT, 35);
+			_tfScore = new GenericTextfield(new A_Font1().fontName, 0xFFFFFF, TextFieldAutoSize.RIGHT, 35);
 			_tfScore.text = "0";
-			_tfScore.x = tfScoreLabel.x + tfScoreLabel.width + 10;
-			_tfScore.y = _scoreBar.y - _tfScore.height / 2 - 5;
+			_tfScore.x = frame.x - _tfScore.width - 5;
+			_tfScore.y = frame.y - 5;
 			_container.addChild(_tfScore);
-			
-			if(GameData.instance.gameMode == GameData.GAME_MODE_ENDLESS)
-			{
-				scoreBarBg.visible = false;
-				_scoreBar.visible = false;
-			}else
-			{
-				tfScoreLabel.visible = false;
-				_tfScore.visible = false;
-			}
-			
+						
 			_flyingScoreCont = new Sprite();
 			_container.addChild(_flyingScoreCont);
 			
@@ -324,13 +276,6 @@ package states
 			//window
 			_window = new GenericWindow();
 			_window.addEventListener(GenericWindow.EVENT_WINDOW_ACTION, windowButtonEvent);
-			
-			//level display text
-			var levelDisplayText:GenericTextfield = new GenericTextfield(new A_Font1().fontName, 0xFFFFFF, TextFieldAutoSize.CENTER, 40);
-			levelDisplayText.text = String(GameData.instance.currentLevel + 1);
-			levelDisplayText.x = 5;
-			levelDisplayText.y = scoreBarBg.y;
-			_container.addChild(levelDisplayText);
 			
 			//music
 			_releaseBallFx = new A_ReleaseBallFx();
