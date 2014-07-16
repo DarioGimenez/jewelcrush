@@ -18,8 +18,10 @@ package states.game
 		public static const EVENT_CRASH_COMPLETE:String = "crash_complete";
 		
 		public static const TYPE_RED:String = "A_JewelRed";
-		public static const TYPE_BLUE:String = "A_JewelBlue";
+		public static const TYPE_ORANGE:String = "A_JewelOrange";
+		public static const TYPE_YELLOW:String = "A_JewelYellow";
 		public static const TYPE_GREEN:String = "A_JewelGreen";
+		public static const TYPE_BLUE:String = "A_JewelBlue";
 		public static const TYPE_VIOLET:String = "A_JewelViolet";
 		
 		private var _source:MovieClip;

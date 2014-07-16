@@ -35,6 +35,7 @@ package states
 	import org.j2dm.system.input.IMouseStage;
 	import org.j2dm.system.input.J2DM_InputMouse;
 	
+	import states.game.AbstractGameModeController;
 	import states.game.Ball;
 	import states.game.Board;
 	import states.game.Jewel;
@@ -89,6 +90,8 @@ package states
 		private var _activePointer:Boolean;
 		private var _pointer:MovieClip;
 		
+		private var _gameModeController:AbstractGameModeController;
+		
 		public function StateGame(params:J2DM_AbstractStateParameters)
 		{
 			super(params);
@@ -98,6 +101,8 @@ package states
 		{
 			J2DM_Stage.getInstance().removeElement(_container, J2DM_StageLayerTypes.INTERFACE);
 			J2DM_InputMouse.getInstance().unsuscribeStage(this);
+			
+			_gameModeController.destroy();
 			
 			_board.removeEventListener(Board.EVENT_BOARD_IS_FULL, onBoardEvent);
 			
@@ -207,6 +212,17 @@ package states
 			_timeBar.y = frame.y - 12;
 			_container.addChild(_timeBar);
 			
+			//current level
+			_currentLevel = GameData.instance.getCurrentLevel();
+			
+			//game mode controller
+			var gameModeContainer:Sprite = new Sprite();
+			gameModeContainer.y = 100;
+			_container.addChild(gameModeContainer);
+			
+			_gameModeController = AbstractGameModeController.getGameModeController(_currentLevel.gameMode);
+			_gameModeController.init(gameModeContainer, _currentLevel.levelConfig);
+			
 			//score tf
 			_tfScore = new GenericTextfield(new A_Font1().fontName, 0xFFFFFF, TextFieldAutoSize.RIGHT, 35);
 			_tfScore.text = "0";
@@ -297,8 +313,6 @@ package states
 		
 		private function init():void
 		{
-			_currentLevel = GameData.instance.getCurrentLevel();
-			
 			_board.addNewLines(_currentLevel.initialLines);
 			_lastTimer = getTimer();
 			
