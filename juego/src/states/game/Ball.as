@@ -27,6 +27,8 @@ package states.game
 		public static const TYPE_BLUE:String = "A_BallBlue";
 		public static const TYPE_GREEN:String = "A_BallGreen";
 		public static const TYPE_VIOLET:String = "A_BallViolet";
+		public static const TYPE_ORANGE:String = "A_BallOrange";
+		public static const TYPE_YELLOW:String = "A_BallYellow";
 		
 		public static const TYPE_BOMB:String = "A_BallBomb";
 		public static const TYPE_LINE_CLEANER:String = "A_BallLineCleaner";
@@ -113,6 +115,14 @@ package states.game
 					break;
 				case TYPE_VIOLET:
 					source = new A_BallViolet();
+					
+					break;
+				case TYPE_ORANGE:
+					source = new A_BallOrange();
+					
+					break;
+				case TYPE_YELLOW:
+					source = new A_BallYellow();
 					
 					break;
 				default:

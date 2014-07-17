@@ -81,11 +81,31 @@ package states
 			var btn:J2DM_GenericButtonWithText;
 			var yy:int = 0;
 			var xx:int = 0;
-			for(var i:int = 0; i < GameData.instance.getGameModeLevels().length; i++)
+			var levels:XML = GameData.instance.getLevels();
+			var level:XML;
+			var q:int = levels.level.length();
+			
+			for(var i:int = 0; i < q; i++)
 			{
 				yy = i / MAX_BUTTONS;
 				
-				clip = new A_LevelButton();
+				level = levels.level[i];
+				switch(String(level.@mode))
+				{
+					case Level.GAME_MODE_CLASSIC:
+						clip = new A_LevelButtonClassic();
+						
+						break;
+					case Level.GAME_MODE_BOSS:
+						clip = new A_LevelButtonBoss();
+						
+						break;
+					case Level.GAME_MODE_QUEST:
+						clip = new A_LevelButtonClassic();
+						
+						break;
+				}
+				
 				clip.x = xx * clip.width + (xx * BUTTON_POS_OFFSET);
 				clip. y = yy * clip.height + (yy * BUTTON_POS_OFFSET);
 				
@@ -113,25 +133,7 @@ package states
 			btnSource.y = containerLevels.y - btnSource.height - 10;
 			_btnBack = new J2DM_GenericButtonWithText("back", btnSource, "Back", buttonCallback);
 			_container.addChild(btnSource);
-			
-			//tf
-			var tfGameMode:GenericTextfield = new GenericTextfield(new A_Font1().fontName, 0xFFFFFF, TextAlign.RIGHT, 40);
-			switch(GameData.instance.gameMode)
-			{
-				case GameData.GAME_MODE_CLASSIC:
-					tfGameMode.text = "CLASSIC MODE";
-					
-					break;
-				case GameData.GAME_MODE_COLOR:
-					tfGameMode.text = "COLOR MODE";
-					
-					break;
-			}
-			tfGameMode.x = containerLevels.x + containerLevels.width - tfGameMode.width;
-			tfGameMode.y = _btnBack.source.y + 10;
-			
-			_container.addChild(tfGameMode);
-			
+						
 			playMusic();
 			
 			J2DM_Stage.getInstance().addElement(_container, J2DM_StageLayerTypes.INTERFACE, true);

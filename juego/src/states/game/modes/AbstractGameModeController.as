@@ -1,4 +1,4 @@
-package states.game
+package states.game.modes
 {
 	import allData.Level;
 	
@@ -7,8 +7,11 @@ package states.game
 
 	public class AbstractGameModeController extends EventDispatcher
 	{	
+		public static const EVENT_LEVEL_COMPLETE:String = "level_complete";
+		
 		protected var _container:Sprite;
 		protected var _levelConfig:XML;
+		protected var _goals:Vector.<GoalModule>;
 		
 		public static function getGameModeController(type:String):AbstractGameModeController
 		{
@@ -16,6 +19,9 @@ package states.game
 			{
 				case Level.GAME_MODE_CLASSIC:
 					return new GameModeClassicController();
+					
+				case Level.GAME_MODE_BOSS:
+					return new GameModeBossController();
 			}
 			
 			return null;
@@ -45,6 +51,26 @@ package states.game
 		}
 		
 		protected function build():void
+		{
+			
+		}
+		
+		protected function createGoalModule(type:String, goal:int):void
+		{
+			
+		}
+		
+		protected function getModuleByType(type:String):GoalModule
+		{
+			return null;
+		}
+		
+		protected function updateScore(type:String):void
+		{
+			
+		}
+		
+		protected function checkComeplete():void
 		{
 			
 		}

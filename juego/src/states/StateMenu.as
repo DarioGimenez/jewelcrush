@@ -20,8 +20,6 @@ package states
 	public class StateMenu extends J2DM_AbstractState
 	{
 		private var _container:Sprite;
-		private var _btnClassicMode:J2DM_GenericButtonWithText;
-		private var _btnColorMode:J2DM_GenericButtonWithText;
 		private var _btnEndlessMode:J2DM_GenericButtonWithText;
 		private var _btnSound:J2DM_GenericCheckBox;
 		
@@ -39,8 +37,6 @@ package states
 			
 			J2DM_Stage.getInstance().removeElement(_container, J2DM_StageLayerTypes.INTERFACE);
 			
-			_btnClassicMode.destroy();
-			_btnColorMode.destroy();
 			_btnEndlessMode.destroy(); 
 			_btnSound.destroy();
 			
@@ -59,29 +55,15 @@ package states
 			logo.y = (J2DM_Stage.getInstance().realStage.stageWidth / 3);
 			_container.addChild(logo);
 			
+			var clip:MovieClip;
+			
 			//endless
 			clip = new A_GenericButton();
 			clip.x = (J2DM_Stage.getInstance().realStage.stageWidth / 2) - (clip.width / 2);
 			clip.y = (J2DM_Stage.getInstance().realStage.stageWidth / 3) * 3;
 			_container.addChild(clip);
-			_btnEndlessMode = new J2DM_GenericButtonWithText("endless", clip, "ENDLESS", buttonCallback);
+			_btnEndlessMode = new J2DM_GenericButtonWithText("endless", clip, "PLAY", buttonCallback);
 
-			//classic
-			var clip:MovieClip = new A_GenericButton();
-			clip.x = _btnEndlessMode.source.x
-			clip.y = _btnEndlessMode.source.y + clip.height + 10;
-			_container.addChild(clip);
-			_btnClassicMode = new J2DM_GenericButtonWithText("classic", clip, "CLASSIC", buttonCallback);
-			_btnClassicMode.hide();
-			
-			//color
-			clip = new A_GenericButton();
-			clip.x = _btnClassicMode.source.x
-			clip.y = _btnClassicMode.source.y + clip.height + 10;
-			_container.addChild(clip);
-			_btnColorMode = new J2DM_GenericButtonWithText("color", clip, "COLOR", buttonCallback);
-			_btnColorMode.hide();
-			
 			//sound
 			clip = new A_SoundButton();
 			clip.x = 10;
@@ -126,19 +108,8 @@ package states
 				case MouseEvent.MOUSE_DOWN:
 					switch(button)
 					{
-						case _btnClassicMode:
-							GameData.instance.gameMode = GameData.GAME_MODE_CLASSIC;
-							_gameLoop.changeState(StateSelectLevel);
-							
-							break;
-						case _btnColorMode:
-							GameData.instance.gameMode = GameData.GAME_MODE_COLOR;
-							_gameLoop.changeState(StateSelectLevel);
-							
-							break;
 						case _btnEndlessMode:
-							GameData.instance.gameMode = GameData.GAME_MODE_ENDLESS;
-							_gameLoop.changeState(StateGame);
+							_gameLoop.changeState(StateSelectLevel);
 							
 							break;
 						case _btnSound:

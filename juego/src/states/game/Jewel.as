@@ -87,6 +87,14 @@ package states.game
 					_source = new A_JewelViolet();
 					
 					break;
+				case TYPE_ORANGE:
+					_source = new A_JewelOrange();
+					
+					break;
+				case TYPE_YELLOW:
+					_source = new A_JewelYellow();
+					
+					break;
 			}
 			
 			if(_source != null)

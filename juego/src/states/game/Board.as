@@ -177,6 +177,10 @@ package states.game
 					return  jewelType == Jewel.TYPE_GREEN;
 				case Ball.TYPE_VIOLET:
 					return  jewelType == Jewel.TYPE_VIOLET;
+				case Ball.TYPE_ORANGE:
+					return  jewelType == Jewel.TYPE_ORANGE;
+				case Ball.TYPE_YELLOW:
+					return  jewelType == Jewel.TYPE_YELLOW;
 			}
 			
 			return false;
@@ -423,7 +427,7 @@ package states.game
 		
 		private function getRandomJewel():Jewel
 		{
-			var allJewels:Array = new Array(Jewel.TYPE_RED, Jewel.TYPE_BLUE, Jewel.TYPE_GREEN, Jewel.TYPE_VIOLET);
+			var allJewels:Array = new Array(Jewel.TYPE_RED, Jewel.TYPE_BLUE, Jewel.TYPE_GREEN, Jewel.TYPE_VIOLET, Jewel.TYPE_ORANGE, Jewel.TYPE_YELLOW);
 			var rnd:int = Math.random() * allJewels.length;
 			
 			return new Jewel(allJewels[rnd]);

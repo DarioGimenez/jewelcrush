@@ -37,7 +37,7 @@ package states
 	import org.j2dm.system.input.IMouseStage;
 	import org.j2dm.system.input.J2DM_InputMouse;
 	
-	import states.game.AbstractGameModeController;
+	import states.game.modes.AbstractGameModeController;
 	import states.game.Ball;
 	import states.game.Board;
 	import states.game.Jewel;
@@ -105,6 +105,7 @@ package states
 			J2DM_InputMouse.getInstance().unsuscribeStage(this);
 			
 			_gameModeController.destroy();
+			_gameModeController.removeEventListener(AbstractGameModeController.EVENT_LEVEL_COMPLETE, onGameControllerEvent);
 			
 			_board.removeEventListener(Board.EVENT_BOARD_IS_FULL, onBoardEvent);
 			
@@ -226,6 +227,7 @@ package states
 			
 			_gameModeController = AbstractGameModeController.getGameModeController(_currentLevel.gameMode);
 			_gameModeController.init(gameModeContainer, _currentLevel.levelConfig);
+			_gameModeController.addEventListener(AbstractGameModeController.EVENT_LEVEL_COMPLETE, onGameControllerEvent);
 			
 			//score tf
 			_tfScore = new GenericTextfield(new A_Font1().fontName, 0xFFFFFF, TextFieldAutoSize.RIGHT, 35);
@@ -352,7 +354,7 @@ package states
 		
 		private function getRandomBallType():String
 		{
-			var colorBalls:Array = new Array(Ball.TYPE_RED, Ball.TYPE_BLUE, Ball.TYPE_GREEN, Ball.TYPE_VIOLET);
+			var colorBalls:Array = new Array(Ball.TYPE_RED, Ball.TYPE_BLUE, Ball.TYPE_GREEN, Ball.TYPE_VIOLET, Ball.TYPE_ORANGE, Ball.TYPE_YELLOW);
 			var rnd:int = Math.random() * colorBalls.length;
 			var chance:int = Math.random() * 100;
 			if(chance <= GameData.instance.getCurrentLevel().chanceColorBall)
@@ -500,38 +502,9 @@ package states
 		{
 			_isPlaying = false;
 			
-			/*
-			if(GameData.instance.currentLevel + 1 >= GameData.instance.getGameModeLevels().length)
-			{
-				var gameMode:String;
-				switch(GameData.instance.gameMode)
-				{
-					case GameData.GAME_MODE_CLASSIC:
-						gameMode = "CLASSIC";
-						
-						break;
-					case GameData.GAME_MODE_COLOR:
-						gameMode = "COLOR";
-						
-						break;
-					case GameData.GAME_MODE_ENDLESS:
-						gameMode = "QUEST";
-						
-						break;
-				}
-				
-				_actionType = ACTION_TYPE_GAME_MODE_COMPLETE;
-				_window.setText("Congratulations!\rYou have complete\rthe "+gameMode+" mode");
-				_window.setButtonText("Back");
-				_window.show();
-				
-				return;
-			}
-			*/
-			
 			_actionType = ACTION_TYPE_LEVEL_COMPLETE;
 			_window.setText("Level\nComplete");
-			_window.setButtonText("Next Level");
+			_window.setButtonText("Next");
 			_window.show();
 		}
 		
@@ -594,6 +567,12 @@ package states
 			_activePointer = false;
 		}
 		
+		private function onGameControllerEvent(e:CustomEvent):void
+		{
+			levelComplete();
+		}
+			
+		
 		private function windowButtonEvent(event:Event):void
 		{
 			switch(_actionType)
@@ -603,8 +582,9 @@ package states
 					
 					break;
 				case ACTION_TYPE_LEVEL_COMPLETE:
-					GameData.instance.currentLevel++;
-					_gameLoop.changeState(StateGame);
+					//GameData.instance.currentLevel++;
+					//_gameLoop.changeState(StateGame);
+					_gameLoop.changeState(StateMenu);
 					
 					break;
 				case ACTION_TYPE_GAME_MODE_COMPLETE:
@@ -627,8 +607,11 @@ package states
 					_score = e.data.score;
 					_tfScore.text = String(_score);
 					
-					_gameModeController.addJewels(e.data.q, e.data.jewelType);
-					showFlyingScore(e.data.lastScore);
+					if(_ball.ballType != Ball.TYPE_BOMB && _ball.ballType != Ball.TYPE_LINE_CLEANER)
+					{
+						_gameModeController.addJewels(e.data.q, e.data.jewelType);
+						showFlyingScore(e.data.lastScore);
+					}
 					
 					break;
 			}

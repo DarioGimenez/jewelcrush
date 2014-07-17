@@ -12,7 +12,7 @@ package allData
 		
 		public function GameData()
 		{
-			gameMode = GAME_MODE_CLASSIC;
+			
 		}
 		
 		public static function get instance():GameData
@@ -32,14 +32,8 @@ package allData
 		 **/
 		
 		public static const GAME_SCORE_BASE:int = 2;
-		
-		public static const GAME_MODE_ENDLESS:int = 0;
-		public static const GAME_MODE_CLASSIC:int = 1;
-		public static const GAME_MODE_COLOR:int = 2;
-		
 		public static const RESIZE_FACTOR:int = 0.33;
 		
-		public var gameMode:int;
 		public var currentLevel:int;
 		public var musicActive:Boolean = true;
 		
@@ -49,10 +43,9 @@ package allData
 			return level;
 		}
 		
-		public function getGameModeLevels():Vector.<Level>
+		public function getLevels():XML
 		{
-			var levels:Vector.<Level> = Levels.LEVELS.level;
-			return levels;
+			return Levels.LEVELS;
 		}
 	}
 }
