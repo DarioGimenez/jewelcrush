@@ -39,7 +39,7 @@ package states.game
 			build();
 		}
 		
-		public function addJewels(q:int, type:int):void
+		public function addJewels(q:int, type:String):void
 		{
 			
 		}

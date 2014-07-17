@@ -19,6 +19,7 @@ package states.game
 	public class Board extends EventDispatcher
 	{
 		public static const EVENT_BOARD_IS_FULL:String = "board_is_full";
+		public static const EVENT_UPDATE_SCORE:String = "update_score";
 		
 		public static const BOARD_MAX_W:int = 9;
 		public static const BOARD_MAX_H:int = 10;
@@ -116,6 +117,11 @@ package states.game
 			}
 			
 			calcScore();
+			
+			var e:CustomEvent = new CustomEvent(EVENT_UPDATE_SCORE);
+			e.data = { score:_score, lastScore:_lastScore, q:_selectedCells.length, jewelType:cell.jewel.jewelType };
+			dispatchEvent(e);
+			
 			clearSelectedCells();
 			TweenLite.delayedCall(0.2, animateLines);
 			
@@ -124,17 +130,7 @@ package states.game
 				_hitCellFx.play();
 			}
 		}
-		
-		public function get score():int
-		{
-			return _score;
-		}
-		
-		public function get lastScore():int
-		{
-			return _lastScore;
-		}
-		
+				
 		private function build():void
 		{
 			_cells = new Vector.<Vector.<BoardCell>>();

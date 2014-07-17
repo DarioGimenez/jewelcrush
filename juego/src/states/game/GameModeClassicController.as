@@ -4,6 +4,7 @@ package states.game
 	
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
+	import flash.text.TextField;
 	import flash.utils.getDefinitionByName;
 
 	public class GameModeClassicController extends AbstractGameModeController
@@ -18,9 +19,15 @@ package states.game
 			
 		}
 		
-		public override function addJewels(q:int, type:int):void
+		public override function addJewels(q:int, type:String):void
 		{
+			if(_goals[type] == null)
+			{
+				return;
+			}
 			
+			_current[type] += q;
+			updateScore(type);
 		}
 		
 		protected override function build():void
@@ -91,9 +98,7 @@ package states.game
 						
 						break;
 				}
-				
 			}
-			
 		}
 		
 		private function createGoalModule(type:String):void
@@ -112,6 +117,18 @@ package states.game
 			
 			_modules[type] = module;
 			_qModules++;
+			
+			updateScore(type);
+		}
+		
+		private function updateScore(type:String):void
+		{
+			var module:MovieClip = _modules[type];
+			var tf:TextField = module.getChildByName("tfText") as TextField;
+			var current:int = _current[type];
+			var total:int = _goals[type];
+			
+			tf.text = current + "/" +total;
 		}
 	}
 }

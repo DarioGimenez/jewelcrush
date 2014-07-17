@@ -7,6 +7,8 @@ package states
 	import com.greensock.TimelineLite;
 	import com.greensock.TweenLite;
 	
+	import event.CustomEvent;
+	
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -189,6 +191,7 @@ package states
 			
 			_board = new Board(_jewelContainer);
 			_board.addEventListener(Board.EVENT_BOARD_IS_FULL, onBoardEvent);
+			_board.addEventListener(Board.EVENT_UPDATE_SCORE, onBoardEvent);
 			
 			var rect:Rectangle = new Rectangle(frame.x + 10, frame.y + frame.height + 50, frame.width - 10, 200);
 			var ballx:int = frame.width / 2 + frame.x;
@@ -217,6 +220,7 @@ package states
 			
 			//game mode controller
 			var gameModeContainer:Sprite = new Sprite();
+			gameModeContainer.x = 5;
 			gameModeContainer.y = 100;
 			_container.addChild(gameModeContainer);
 			
@@ -454,11 +458,11 @@ package states
 			return data;
 		}
 		
-		private function showFlyingScore():void
+		private function showFlyingScore(score:int):void
 		{
-			if(_board.lastScore > 0)
+			if(score > 0)
 			{
-				_flyingScore.text = String(_board.lastScore);
+				_flyingScore.text = String(score);
 				_flyingScore.x = -_flyingScore.width / 2;
 				_flyingScore.y = -_flyingScore.height / 2;
 				
@@ -480,10 +484,6 @@ package states
 		{
 			var hitPoint:Point = new Point(_ball.x, _ball.y);
 			_board.hitCell(hitPoint, _ball.ballType);
-			
-			_score = _board.score;
-			_tfScore.text = String(_score);
-			showFlyingScore();
 			
 			_ball.dragEnable = true;
 			_ball.reset();
@@ -615,9 +615,24 @@ package states
 			
 		}
 		
-		private function onBoardEvent(e:Event):void
+		private function onBoardEvent(e:CustomEvent):void
 		{
-			gameOver();
+			switch(e.type)
+			{
+				case Board.EVENT_BOARD_IS_FULL:
+					gameOver();
+					
+					break;
+				case Board.EVENT_UPDATE_SCORE:
+					_score = e.data.score;
+					_tfScore.text = String(_score);
+					
+					_gameModeController.addJewels(e.data.q, e.data.jewelType);
+					showFlyingScore(e.data.lastScore);
+					
+					break;
+			}
+			
 		}
 		
 		private function onBallEvents(e:Event):void
