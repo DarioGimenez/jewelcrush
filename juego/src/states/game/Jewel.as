@@ -10,8 +10,12 @@ package states.game
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.events.TimerEvent;
+	import flash.text.TextField;
+	import flash.utils.Timer;
 	
 	import org.j2dm.utils.J2DM_SpriteTools;
+	import org.osmf.events.TimeEvent;
 	
 	public class Jewel extends Sprite
 	{
@@ -24,12 +28,21 @@ package states.game
 		public static const TYPE_BLUE:String = "A_JewelBlue";
 		public static const TYPE_VIOLET:String = "A_JewelViolet";
 		
+		public static const TYPE_COUNT_DOWN:String = "A_JewelCountDown";
+		public static const TYPE_ROCK:String = "A_JewelRock";
+		
+		private static const COUNT_DOWN:int = 9;
+		
 		private var _source:MovieClip;
 		private var _jewelType:String;
 		
 		private var _animIn:TweenLite;
 		private var _animOut:TweenLite;
 		private var _jewelFx:TimelineLite;
+		
+		private var _timer:Timer;
+		private var _tfText:TextField;
+		private var _currentTimer:int;
 		
 		public function Jewel(type:String)
 		{
@@ -39,11 +52,19 @@ package states.game
 		public function destroy():void
 		{
 			TweenLite.killTweensOf(this, false);
+			_timer.removeEventListener(TimerEvent.TIMER, onTick);
+			_timer = null;
 		}
 		
 		public function set jewelType(type:String):void
 		{
 			_jewelType = type;
+			
+			if(_timer != null)
+			{
+				_timer.stop();
+			}
+			
 			build();
 		}
 		
@@ -55,6 +76,19 @@ package states.game
 		public function crashJewel():void
 		{
 			TweenLite.to(this, 0.2, { scaleX:0, scaleY:0, alpha:0, onComplete:crashComplete });
+		}
+		
+		private function initCountDown():void
+		{
+			_timer = new Timer(1000);
+			_timer.addEventListener(TimerEvent.TIMER, onTick);
+			
+			_currentTimer = COUNT_DOWN;
+			
+			_tfText = _source.getChildByName("tfText") as TextField;
+			_tfText.text = String(_currentTimer);
+			
+			_timer.start();
 		}
 		
 		private function crashComplete():void
@@ -95,13 +129,43 @@ package states.game
 					_source = new A_JewelYellow();
 					
 					break;
+				case TYPE_COUNT_DOWN:
+					_source = new A_JewelCountDown();
+					
+					break;
+				case TYPE_ROCK:
+					_source = new A_JewelRock();
+					
+					break;
+
 			}
 			
 			if(_source != null)
 			{
 				addChild(_source);
 			}
+			
+			if(jewelType == TYPE_COUNT_DOWN)
+			{
+				initCountDown();
+			}
 		}
 		
+		private function onTick(e:flash.events.TimerEvent):void
+		{
+			if(_currentTimer == 0)
+			{
+				_timer.stop();
+				_tfText = null;
+				
+				jewelType = TYPE_ROCK;
+				
+				return;
+			}
+
+			_currentTimer--;
+			_tfText.text = String(_currentTimer);
+			
+		}
 	}
 }

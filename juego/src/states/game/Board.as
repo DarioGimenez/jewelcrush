@@ -1,6 +1,7 @@
 package states.game
 {
 	import allData.GameData;
+	import allData.Level;
 	import allData.Levels;
 	
 	import com.greensock.TweenLite;
@@ -100,7 +101,15 @@ package states.game
 		{
 			var cellPos:Point = convertGlobalPosition(hitPos);
 			var cell:BoardCell = getCell(cellPos);
-			if(!cell || !cell.jewel || !checkMachBallType(cell.jewel.jewelType, ballType))
+			
+			
+			if(cell && cell.jewel && cell.jewel.jewelType == Jewel.TYPE_COUNT_DOWN)
+			{
+				changeCommonType(cell)
+				return;
+			}
+			
+			if(!cell || !cell.jewel || cell.jewel.jewelType == Jewel.TYPE_ROCK || !checkMachBallType(cell.jewel.jewelType, ballType))
 			{
 				_lastScore = 0;
 				return;
@@ -199,6 +208,16 @@ package states.game
 			return false;
 		}
 		
+		private function changeCommonType(cell:BoardCell):void
+		{
+			var auxJewel:Jewel = getRandomJewel();
+			while(auxJewel.jewelType == Jewel.TYPE_COUNT_DOWN && auxJewel.jewelType == Jewel.TYPE_ROCK)
+			{
+				auxJewel = getRandomJewel();
+			}
+			cell.jewel.jewelType = auxJewel.jewelType;
+		}
+		
 		private function checkBooster(ballType:String):Boolean
 		{
 			return (
@@ -239,7 +258,17 @@ package states.game
 			for(var xx:int = 0; xx < row.length; xx++)
 			{
 				auxCell = row[xx];
-				if(auxCell.jewel && !checkIfSelected(auxCell))
+				if(	auxCell.jewel && 
+					auxCell.jewel.jewelType == Jewel.TYPE_COUNT_DOWN &&
+					!checkIfSelected(auxCell))
+				{
+					changeCommonType(auxCell);
+					continue;
+				}
+				
+				if(	auxCell.jewel &&  
+					auxCell.jewel.jewelType != Jewel.TYPE_ROCK && 
+					!checkIfSelected(auxCell))
 				{
 					_selectedCells.push(auxCell);
 				}
@@ -429,6 +458,13 @@ package states.game
 		{
 			var allJewels:Array = new Array(Jewel.TYPE_RED, Jewel.TYPE_BLUE, Jewel.TYPE_GREEN, Jewel.TYPE_VIOLET, Jewel.TYPE_ORANGE, Jewel.TYPE_YELLOW);
 			var rnd:int = Math.random() * allJewels.length;
+			
+			var prob:int = Math.random() * 100;
+			var level:Level = GameData.instance.getCurrentLevel();
+			if(prob <= level.chanceCountDown)
+			{
+				return new Jewel(Jewel.TYPE_COUNT_DOWN);
+			}
 			
 			return new Jewel(allJewels[rnd]);
 		}

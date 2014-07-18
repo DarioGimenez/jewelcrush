@@ -12,6 +12,7 @@ package allData
 		private var _newLineTimer:int;
 		private var _chanceWeightBall:int;
 		private var _chanceColorBall:int;
+		private var _chanceCountDown:int;
 		private var _goal:Object;
 		
 		public function Level(levelConfig:XML)
@@ -23,6 +24,7 @@ package allData
 			_newLineTimer = int(levelConfig.@newLineTimer);
 			_chanceWeightBall = int(levelConfig.@weightBallProb);
 			_chanceColorBall = int(levelConfig.@colorBallProb);
+			_chanceCountDown = int(levelConfig.@rockProb);
 			_goal = String(levelConfig.@goal);
 			
 			
@@ -63,6 +65,12 @@ package allData
 		{
 			return _goal;
 		}
-
+		
+		public function get chanceCountDown():int
+		{
+			return _chanceCountDown;
+		}
+		
+		
 	}
 }
