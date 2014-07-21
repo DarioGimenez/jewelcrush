@@ -47,9 +47,10 @@ package states
 	
 	public class StateGame extends J2DM_AbstractState implements IMouseStage
 	{		
-		public static const ACTION_TYPE_GAME_OVER:int = 0;
-		public static const ACTION_TYPE_LEVEL_COMPLETE:int = 1;
-		public static const ACTION_TYPE_GAME_MODE_COMPLETE:int = 2;
+		public static const ACTION_TYPE_PAUSE:int = 0;
+		public static const ACTION_TYPE_GAME_OVER:int = 1;
+		public static const ACTION_TYPE_LEVEL_COMPLETE:int = 2;
+		public static const ACTION_TYPE_GAME_MODE_COMPLETE:int = 3;
 		
 		private var _container:Sprite;
 		private var _trailCanvas:Sprite;
@@ -63,6 +64,9 @@ package states
 		private var _btnBoosterChangeType:J2DM_GenericCheckBoxWithText;
 		private var _btnBoosterPointer:J2DM_GenericCheckBoxWithText;
 		
+		private var _btnPause:J2DM_GenericButtonWithText;
+		private var _btnQuit:J2DM_GenericButtonWithText;
+		
 		private var _ballFx:TimelineLite;
 		private var _moveBallFx:TweenLite;
 		private var _scaleBallFx:TweenLite;
@@ -73,6 +77,9 @@ package states
 		private var _flyingScore:GenericTextfield;
 
 		private var _tfScore:GenericTextfield;
+		
+		private var _tfQBalls:GenericTextfield;
+		private var _currentBalls:int;
 		
 		private var _releaseBallFx:Sound;
 		
@@ -118,9 +125,17 @@ package states
 			_ball.destroy();
 			_board.destroy();
 			
-			_ballFx.kill();
-			_moveBallFx.kill();
-			_scaleBallFx.kill();
+			if(_ballFx != null)_ballFx.kill();
+			if(_moveBallFx != null)_moveBallFx.kill();
+			if(_scaleBallFx != null)_scaleBallFx.kill();
+			
+			_btnBoosterBomb.destroy();
+			_btnBoosterChangeType.destroy();
+			_btnBoosterColor.destroy();
+			_btnBoosterLineCleaner.destroy();
+			_btnBoosterPointer.destroy();
+			_btnPause.destroy();
+			_btnQuit.destroy();
 			
 			stopMusic();
 			
@@ -135,7 +150,7 @@ package states
 				return;
 			}	
 			
-			if(_currentLevel.gameMode == Level.GAME_MODE_CLASSIC || _currentLevel.gameMode == Level.GAME_MODE_BOSS)
+			if(_currentLevel.gameMode != Level.GAME_MODE_QUEST)
 			{
 				//timer
 				_leftTimer -= getTimer() - _lastTimer;
@@ -149,6 +164,8 @@ package states
 					addlines();
 				}				
 			}
+			
+			_board.update();
 		}
 		
 		public function mouseDownStage(position:Point):void
@@ -200,6 +217,7 @@ package states
 			_board = new Board(_jewelContainer, _currentLevel);
 			_board.addEventListener(Board.EVENT_BOARD_IS_FULL, onBoardEvent);
 			_board.addEventListener(Board.EVENT_UPDATE_SCORE, onBoardEvent);
+			_board.addEventListener(Board.EVENT_BOARD_READY, onBoardEvent);
 			
 			var rect:Rectangle = new Rectangle(frame.x + 10, frame.y + frame.height + 50, frame.width - 10, 200);
 			var ballx:int = frame.width / 2 + frame.x;
@@ -223,6 +241,12 @@ package states
 			_timeBar.y = frame.y - 12;
 			_container.addChild(_timeBar);
 			
+			if(_currentLevel.gameMode == Level.GAME_MODE_QUEST)
+			{
+				_timeBar.visible = false;
+				timeBarBg.visible = false;
+			}
+			
 			//game mode controller
 			var gameModeContainer:Sprite = new Sprite();
 			gameModeContainer.x = 5;
@@ -239,7 +263,18 @@ package states
 			_tfScore.x = frame.x - _tfScore.width - 5;
 			_tfScore.y = frame.y - 5;
 			_container.addChild(_tfScore);
-						
+			
+			//Q balls
+			_currentBalls = _currentLevel.maxBalls;
+			
+			_tfQBalls = new GenericTextfield(new A_Font1().fontName, 0x000000, TextFieldAutoSize.RIGHT, 35);
+			_tfQBalls.visible = _currentLevel.gameMode == Level.GAME_MODE_QUEST;
+			_tfQBalls.text = String(_currentBalls);
+			_tfQBalls.x = _ball.initialPos.x + 20;
+			_tfQBalls.y = _ball.initialPos.y + 20;
+			_container.addChild(_tfQBalls);
+			
+			//flying score
 			_flyingScoreCont = new Sprite();
 			_container.addChild(_flyingScoreCont);
 			
@@ -248,6 +283,26 @@ package states
 			
 			//booster buttons
 			var clip:MovieClip;
+			
+			//pause
+			clip = new A_LevelButtonClassic();
+			clip.scaleX = 0.5;
+			clip.scaleY = 0.5;
+			clip.x = 5;
+			clip.y = 5;
+			_container.addChild(clip);
+			
+			_btnPause = new J2DM_GenericButtonWithText("pause", clip, "//", pauseButtonEvent);
+			
+			//quit
+			clip = new A_LevelButtonClassic();
+			clip.scaleX = 0.5;
+			clip.scaleY = 0.5;
+			clip.x = _btnPause.source.width + 10;
+			clip.y = 5;
+			_container.addChild(clip);
+			
+			_btnQuit = new J2DM_GenericButtonWithText("pause", clip, "X", pauseButtonEvent);
 			
 			//booster line cleaner
 			clip = new A_BoosterButton();
@@ -415,6 +470,12 @@ package states
 			
 			_ball.dragEnable = false;
 			
+			if(_currentLevel.gameMode == Level.GAME_MODE_QUEST)
+			{
+				_currentBalls--;
+				_tfQBalls.text = String(_currentBalls);	
+			}
+			
 			if(GameData.instance.musicActive)
 			{
 				_releaseBallFx.play();
@@ -490,9 +551,18 @@ package states
 			var hitPoint:Point = new Point(_ball.x, _ball.y);
 			_board.hitCell(hitPoint, _ball.ballType);
 			
-			_ball.dragEnable = true;
+			
 			_ball.reset();
 			_ball.ballType = getRandomBallType();
+			
+			if(_currentLevel.gameMode == Level.GAME_MODE_QUEST)
+			{
+				_ball.dragEnable = _currentBalls > 0;
+			}else
+			{
+				_ball.dragEnable = true;
+			}
+				
 			
 			_ballFx.kill();
 			_moveBallFx.kill();
@@ -518,6 +588,30 @@ package states
 			_actionType = ACTION_TYPE_GAME_OVER;
 			_window.setText("Level\nFailed");
 			_window.setButtonText("Back");
+			_window.show();
+		}
+		
+		private function boardRady():void
+		{
+			if(!_isPlaying)
+			{
+				return;
+			}
+			
+			if(_currentBalls == 0)
+			{
+				gameOver();
+			}
+		}	
+		
+		
+		private function pauseGame():void
+		{
+			_isPlaying = false;
+			
+			_actionType = ACTION_TYPE_PAUSE;
+			_window.setText("PAUSE");
+			_window.setButtonText("Ok");
 			_window.show();
 		}
 		
@@ -585,13 +679,15 @@ package states
 					
 					break;
 				case ACTION_TYPE_LEVEL_COMPLETE:
-					//GameData.instance.currentLevel++;
-					//_gameLoop.changeState(StateGame);
 					_gameLoop.changeState(StateMenu);
 					
 					break;
 				case ACTION_TYPE_GAME_MODE_COMPLETE:
 					_gameLoop.changeState(StateMenu);
+					
+					break;
+				case ACTION_TYPE_PAUSE:
+					_isPlaying = true;
 					
 					break;
 			}
@@ -617,6 +713,10 @@ package states
 					}
 					
 					break;
+				case Board.EVENT_BOARD_READY:
+					boardRady();
+					
+					break;
 			}
 			
 		}
@@ -637,6 +737,27 @@ package states
 			}
 		}
 			
+		private function pauseButtonEvent(type:String, button:J2DM_GenericButton):void
+		{
+			switch(type)
+			{
+				case MouseEvent.MOUSE_DOWN:
+					switch(button)
+					{
+						case _btnPause:
+							pauseGame();
+							
+							break;
+						case _btnQuit:
+							_gameLoop.changeState(StateMenu);;
+							
+							break;
+					}
+					
+					
+					break;
+			}
+		}
 		
 		private function boosterCallback(type:String, button:J2DM_GenericButton):void
 		{

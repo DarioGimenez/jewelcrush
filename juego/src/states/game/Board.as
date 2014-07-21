@@ -15,12 +15,15 @@ package states.game
 	import flash.geom.Point;
 	import flash.media.Sound;
 	
+	import org.j2dm.core.ICommonBehaviour;
+	
 	import states.StateGame;
 
-	public class Board extends EventDispatcher
+	public class Board extends EventDispatcher implements ICommonBehaviour
 	{
 		public static const EVENT_BOARD_IS_FULL:String = "board_is_full";
 		public static const EVENT_UPDATE_SCORE:String = "update_score";
+		public static const EVENT_BOARD_READY:String = "board_ready";
 		
 		public static const BOARD_MAX_W:int = 9;
 		public static const BOARD_MAX_H:int = 10;
@@ -63,6 +66,25 @@ package states.game
 			_selectedCells.length = 0;
 			
 			TweenLite.killDelayedCallsTo(animateLines);
+		}
+		
+		public function update():void
+		{
+			var row:Vector.<BoardCell>;
+			var auxCell:BoardCell;
+			var jewel:Jewel;
+			for(var yy:int = 0; yy < _cells.length; yy++)
+			{
+				row = _cells[yy];
+				for(var xx:int = 0; xx < row.length; xx++)
+				{
+					auxCell = row[xx];
+					if(auxCell.jewel != null)
+					{
+						auxCell.jewel.update();
+					}
+				}
+			}
 		}
 		
 		public function addNewLines(linesY:int):void
@@ -154,6 +176,12 @@ package states.game
 				_catchVases = false;	
 			}
 			
+		}
+		
+		private function boardReady():void
+		{
+			var e:CustomEvent = new CustomEvent(EVENT_BOARD_READY);
+			dispatchEvent(e);
 		}
 		
 		public function hitCell(hitPos:Point, ballType:String):void
@@ -645,6 +673,8 @@ package states.game
 					{
 						refillBoard();
 						_catchVases = false;
+						
+						boardReady();
 					}
 				}
 			}

@@ -13,6 +13,7 @@ package allData
 		private var _chanceWeightBall:int;
 		private var _chanceColorBall:int;
 		private var _chanceCountDown:int;
+		private var _maxBalls:int;
 		private var _goal:Object;
 		
 		public function Level(levelConfig:XML)
@@ -25,11 +26,11 @@ package allData
 			_chanceWeightBall = int(levelConfig.@weightBallProb);
 			_chanceColorBall = int(levelConfig.@colorBallProb);
 			_chanceCountDown = int(levelConfig.@rockProb);
+			_maxBalls = int(levelConfig.@maxBalls);
 			_goal = String(levelConfig.@goal);
 			
-			
 		}
-		
+
 		public function get levelConfig():XML
 		{
 			return _levelConfig;
@@ -71,6 +72,11 @@ package allData
 			return _chanceCountDown;
 		}
 		
+		
+		public function get maxBalls():int
+		{
+			return _maxBalls;
+		}
 		
 	}
 }

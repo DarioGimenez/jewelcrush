@@ -14,10 +14,13 @@ package states.game
 	import flash.text.TextField;
 	import flash.utils.Timer;
 	
+	import org.j2dm.core.ICommonBehaviour;
+	import org.j2dm.core.J2DM_AbstractGameLoop;
+	import org.j2dm.stage.J2DM_Stage;
 	import org.j2dm.utils.J2DM_SpriteTools;
 	import org.osmf.events.TimeEvent;
 	
-	public class Jewel extends Sprite
+	public class Jewel extends Sprite implements ICommonBehaviour
 	{
 		public static const EVENT_CRASH_COMPLETE:String = "crash_complete";
 		
@@ -30,9 +33,9 @@ package states.game
 		
 		public static const TYPE_COUNT_DOWN:String = "A_JewelCountDown";
 		public static const TYPE_ROCK:String = "A_JewelRock";
-		public static const TYPE_VASE:String = "A_JewelVasel";
+		public static const TYPE_VASE:String = "A_JewelVase";
 		
-		private static const COUNT_DOWN:int = 9;
+		private static const COUNT_DOWN:int = 9000;
 		
 		private var _source:MovieClip;
 		private var _jewelType:String;
@@ -53,7 +56,23 @@ package states.game
 		public function destroy():void
 		{
 			TweenLite.killTweensOf(this, false);
-			removeCountDown();
+		}
+		
+		public function update():void
+		{
+			if(jewelType == TYPE_COUNT_DOWN)
+			{
+				if(_currentTimer <= 0)
+				{
+					jewelType = TYPE_ROCK;
+					_tfText = null;
+					
+					return;
+				}
+				
+				_currentTimer -= 1000/J2DM_Stage.getInstance().realStage.frameRate;
+				_tfText.text = String(int(_currentTimer / 1000));
+			}
 		}
 		
 		public function set jewelType(type:String):void
@@ -84,30 +103,12 @@ package states.game
 			}
 		}
 		
-		private function removeCountDown():void
-		{
-			if(_timer != null){
-				_timer.removeEventListener(TimerEvent.TIMER, onTick);
-				_timer = null;				
-			}
-		}
-		
 		private function initCountDown():void
 		{
-			if(_timer != null)
-			{
-				removeCountDown();
-			}
-			
-			_timer = new Timer(1000);
-			_timer.addEventListener(TimerEvent.TIMER, onTick);
-			
 			_currentTimer = COUNT_DOWN;
 			
 			_tfText = _source.getChildByName("tfText") as TextField;
 			_tfText.text = String(_currentTimer);
-			
-			_timer.start();
 		}
 		
 		private function crashComplete():void
@@ -172,23 +173,6 @@ package states.game
 			{
 				initCountDown();
 			}
-		}
-		
-		private function onTick(e:flash.events.TimerEvent):void
-		{
-			if(_currentTimer == 0)
-			{
-				_timer.stop();
-				_tfText = null;
-				
-				jewelType = TYPE_ROCK;
-				
-				return;
-			}
-
-			_currentTimer--;
-			_tfText.text = String(_currentTimer);
-			
 		}
 	}
 }

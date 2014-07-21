@@ -71,7 +71,7 @@ package states.game
 				return;
 			}
 			
-			releaseBall();
+			//releaseBall();
 		}
 		
 		public function set dragEnable(value:Boolean):void
@@ -168,6 +168,10 @@ package states.game
 		
 		private function releaseBall():void
 		{
+			if(!_pressed){
+				return;
+			}
+			
 			dispatchEvent(new CustomEvent(EVENT_RELEASE_BALL));
 			_pressed = false;
 		}

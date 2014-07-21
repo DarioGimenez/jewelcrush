@@ -74,6 +74,8 @@ package ui
 					switch(button)
 					{
 						case _btn:
+							hide();
+							
 							var e:CustomEvent = new CustomEvent(EVENT_WINDOW_ACTION);
 							dispatchEvent(e);
 							

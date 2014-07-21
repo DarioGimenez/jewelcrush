@@ -63,7 +63,9 @@ package states
 			clip.y = (J2DM_Stage.getInstance().realStage.stageWidth / 3) * 3;
 			_container.addChild(clip);
 			_btnEndlessMode = new J2DM_GenericButtonWithText("endless", clip, "PLAY", buttonCallback);
-
+			
+			GameData.instance.musicActive = false;
+			
 			//sound
 			clip = new A_SoundButton();
 			clip.x = 10;
