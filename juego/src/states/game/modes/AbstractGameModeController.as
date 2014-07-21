@@ -22,6 +22,9 @@ package states.game.modes
 					
 				case Level.GAME_MODE_BOSS:
 					return new GameModeBossController();
+					
+				case Level.GAME_MODE_QUEST:
+					return new GameModeQuestController();
 			}
 			
 			return null;

@@ -30,6 +30,7 @@ package states.game
 		
 		public static const TYPE_COUNT_DOWN:String = "A_JewelCountDown";
 		public static const TYPE_ROCK:String = "A_JewelRock";
+		public static const TYPE_VASE:String = "A_JewelVasel";
 		
 		private static const COUNT_DOWN:int = 9;
 		
@@ -52,8 +53,7 @@ package states.game
 		public function destroy():void
 		{
 			TweenLite.killTweensOf(this, false);
-			_timer.removeEventListener(TimerEvent.TIMER, onTick);
-			_timer = null;
+			removeCountDown();
 		}
 		
 		public function set jewelType(type:String):void
@@ -75,11 +75,30 @@ package states.game
 		
 		public function crashJewel():void
 		{
-			TweenLite.to(this, 0.2, { scaleX:0, scaleY:0, alpha:0, onComplete:crashComplete });
+			if(jewelType == TYPE_VASE)
+			{
+				TweenLite.to(this, 0.5, { y:y + height, alpha:0, onComplete:crashComplete });	
+			}else
+			{
+				TweenLite.to(this, 0.2, { scaleX:0, scaleY:0, alpha:0, onComplete:crashComplete });
+			}
+		}
+		
+		private function removeCountDown():void
+		{
+			if(_timer != null){
+				_timer.removeEventListener(TimerEvent.TIMER, onTick);
+				_timer = null;				
+			}
 		}
 		
 		private function initCountDown():void
 		{
+			if(_timer != null)
+			{
+				removeCountDown();
+			}
+			
 			_timer = new Timer(1000);
 			_timer.addEventListener(TimerEvent.TIMER, onTick);
 			
@@ -135,6 +154,10 @@ package states.game
 					break;
 				case TYPE_ROCK:
 					_source = new A_JewelRock();
+					
+					break;
+				case TYPE_VASE:
+					_source = new A_JewelVase();
 					
 					break;
 

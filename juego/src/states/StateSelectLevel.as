@@ -101,7 +101,7 @@ package states
 						
 						break;
 					case Level.GAME_MODE_QUEST:
-						clip = new A_LevelButtonClassic();
+						clip = new A_LevelButtonQuest();
 						
 						break;
 				}

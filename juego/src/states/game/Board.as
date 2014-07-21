@@ -29,7 +29,8 @@ package states.game
 		public static const BOARD_CELL_H:int = 50;
 		
 		private var _container:Sprite;
-
+		private var _currentLevel:Level;
+		
 		private var _cells:Vector.<Vector.<BoardCell>>;
 		private var _selectedCells:Vector.<BoardCell>;
 		
@@ -39,11 +40,12 @@ package states.game
 		private var _lastScore:int;
 		
 		private var _hitCellFx:Sound;
+		private var _catchVases:Boolean;
 		
-		public function Board(container:Sprite)
+		public function Board(container:Sprite, currentLevel:Level)
 		{
 			_container = container;
-			
+			_currentLevel = currentLevel;
 			build();
 		}
 		
@@ -59,11 +61,13 @@ package states.game
 			
 			_cells.length = 0;
 			_selectedCells.length = 0;
+			
+			TweenLite.killDelayedCallsTo(animateLines);
 		}
 		
 		public function addNewLines(linesY:int):void
 		{
-			if(boardIsFull())
+			if(_currentLevel.gameMode != Level.GAME_MODE_QUEST && boardIsFull())
 			{
 				dispatchEvent(new CustomEvent(EVENT_BOARD_IS_FULL));
 				return;
@@ -92,9 +96,64 @@ package states.game
 			animateLines();
 		}
 		
-		public function fillBoard():void
+		public function refillBoard():void
 		{
-			addNewLines(BOARD_MAX_H);
+			var row:Vector.<BoardCell>;
+			var auxCell:BoardCell;
+			var jewel:Jewel;
+			for(var yy:int = 0; yy < _cells.length; yy++)
+			{
+				row = _cells[yy];
+				for(var xx:int = 0; xx < row.length; xx++)
+				{
+					auxCell = row[xx];
+					if(auxCell.jewel == null)
+					{
+						jewel = getRandomJewel(true);
+						jewel.x = xx * jewel.width + jewel.width / 2;
+						jewel.y = yy * jewel.height + jewel.height / 2; 
+						_container.addChild(jewel);
+						
+						auxCell.jewel = jewel;
+						
+						
+					}
+				}
+			}
+		}
+		
+		private function checkVeses():void
+		{
+			_selectedCells.length = 0;
+			
+			var row:Vector.<BoardCell> = _cells[BOARD_MAX_H - 1];
+			var cell:BoardCell;
+			for(var i:int = 0; i < row.length; i++)
+			{
+				cell = row[i];
+				if(cell.jewel != null && cell.jewel.jewelType == Jewel.TYPE_VASE)
+				{
+					_selectedCells.push(cell);
+				}
+			}
+			
+			if(_selectedCells.length > 0)
+			{
+				calcScoreVase();  
+				
+				var e:CustomEvent = new CustomEvent(EVENT_UPDATE_SCORE);
+				e.data = { score:_score, lastScore:_lastScore, q:_selectedCells.length, jewelType:Jewel.TYPE_VASE };
+				dispatchEvent(e);
+				
+				_catchVases = true;
+				
+				clearSelectedCells();
+				TweenLite.delayedCall(0.2, animateLines);
+			}else
+			{
+				_catchVases = false;	
+			}
+			
 		}
 		
 		public function hitCell(hitPos:Point, ballType:String):void
@@ -102,14 +161,19 @@ package states.game
 			var cellPos:Point = convertGlobalPosition(hitPos);
 			var cell:BoardCell = getCell(cellPos);
 			
-			
 			if(cell && cell.jewel && cell.jewel.jewelType == Jewel.TYPE_COUNT_DOWN)
 			{
 				changeCommonType(cell)
 				return;
 			}
 			
-			if(!cell || !cell.jewel || cell.jewel.jewelType == Jewel.TYPE_ROCK || !checkMachBallType(cell.jewel.jewelType, ballType))
+			if(!cell || !cell.jewel || !checkMachBallType(cell.jewel.jewelType, ballType))
+			{
+				_lastScore = 0;
+				return;
+			}
+			
+			if(cell.jewel.jewelType == Jewel.TYPE_ROCK && ballType != Ball.TYPE_BOMB)
 			{
 				_lastScore = 0;
 				return;
@@ -127,9 +191,12 @@ package states.game
 			
 			calcScore();
 			
-			var e:CustomEvent = new CustomEvent(EVENT_UPDATE_SCORE);
-			e.data = { score:_score, lastScore:_lastScore, q:_selectedCells.length, jewelType:cell.jewel.jewelType };
-			dispatchEvent(e);
+			if(cell.jewel.jewelType != Jewel.TYPE_VASE)
+			{
+				var e:CustomEvent = new CustomEvent(EVENT_UPDATE_SCORE);
+				e.data = { score:_score, lastScore:_lastScore, q:_selectedCells.length, jewelType:cell.jewel.jewelType };
+				dispatchEvent(e);				
+			}
 			
 			clearSelectedCells();
 			TweenLite.delayedCall(0.2, animateLines);
@@ -163,11 +230,26 @@ package states.game
 			}
 			
 			_score = 0;
+			_catchVases = false;
 			_hitCellFx = new A_HitCellFx();
+			
+			if(_currentLevel.gameMode == Level.GAME_MODE_QUEST)
+			{
+				addNewLines(BOARD_MAX_H);
+			}else
+			{
+				addNewLines(_currentLevel.initialLines);
+			}
+			
 		}
 		
 		private function checkMachBallType(jewelType:String, ballType:String):Boolean
 		{
+			if(jewelType == Jewel.TYPE_VASE)
+			{
+				return true;
+			}
+			
 			switch(ballType)
 			{
 				case Ball.TYPE_CLASSIC:
@@ -211,7 +293,7 @@ package states.game
 		private function changeCommonType(cell:BoardCell):void
 		{
 			var auxJewel:Jewel = getRandomJewel();
-			while(auxJewel.jewelType == Jewel.TYPE_COUNT_DOWN && auxJewel.jewelType == Jewel.TYPE_ROCK)
+			while(auxJewel.jewelType == Jewel.TYPE_COUNT_DOWN || auxJewel.jewelType == Jewel.TYPE_ROCK)
 			{
 				auxJewel = getRandomJewel();
 			}
@@ -355,6 +437,11 @@ package states.game
 			
 			_selectedCells.push(cell);
 			
+			if(jewelType == Jewel.TYPE_VASE)
+			{
+				return;
+			}
+			
 			var nextCellPos:Point;
 			var nextCell:BoardCell;
 			//check up cell
@@ -393,6 +480,12 @@ package states.game
 		private function calcScore():void
 		{
 			_lastScore = _selectedCells.length * GameData.GAME_SCORE_BASE;
+			_score += _lastScore;
+		}
+		
+		private function calcScoreVase():void
+		{
+			_lastScore = _selectedCells.length * GameData.GAME_SCORE_VASE;
 			_score += _lastScore;
 		}
 		
@@ -454,19 +547,50 @@ package states.game
 			return false;
 		}
 		
-		private function getRandomJewel():Jewel
+		private function getRandomJewel(isRefill:Boolean = false):Jewel
 		{
 			var allJewels:Array = new Array(Jewel.TYPE_RED, Jewel.TYPE_BLUE, Jewel.TYPE_GREEN, Jewel.TYPE_VIOLET, Jewel.TYPE_ORANGE, Jewel.TYPE_YELLOW);
-			var rnd:int = Math.random() * allJewels.length;
+			if(isRefill)
+			{
+				allJewels.push(Jewel.TYPE_VASE);
+			}
 			
+			//countdown
 			var prob:int = Math.random() * 100;
-			var level:Level = GameData.instance.getCurrentLevel();
-			if(prob <= level.chanceCountDown)
+			if(prob <= _currentLevel.chanceCountDown && getCountJewelsByType(Jewel.TYPE_COUNT_DOWN) < GameData.MAX_COUNTDOWN_ONBOARD)
 			{
 				return new Jewel(Jewel.TYPE_COUNT_DOWN);
 			}
 			
+			var rnd:int = Math.random() * allJewels.length;
+			if(allJewels[rnd] == Jewel.TYPE_VASE && getCountJewelsByType(Jewel.TYPE_VASE) >= GameData.MAX_VASES_ONBOARD)
+			{
+				allJewels.pop();
+				rnd = Math.random() * allJewels.length;
+			}
+
 			return new Jewel(allJewels[rnd]);
+		}
+		
+		private function getCountJewelsByType(jewelType:String):int
+		{
+			var row:Vector.<BoardCell>;
+			var auxCell:BoardCell;
+			var q:int = 0;
+			for(var yy:int = 0; yy < _cells.length; yy++)
+			{
+				row = _cells[yy];
+				for(var xx:int = 0; xx < row.length; xx++)
+				{
+					auxCell = row[xx];
+					if(auxCell.jewel != null && auxCell.jewel.jewelType == jewelType)
+					{
+						q++;
+					}
+				}
+			}
+			
+			return q;
 		}
 		
 		private function animateLines():void
@@ -513,6 +637,16 @@ package states.game
 			}else
 			{
 				_animateCount = BOARD_MAX_H;
+				
+				if(_currentLevel.gameMode == Level.GAME_MODE_QUEST)
+				{
+					checkVeses();
+					if(!_catchVases)
+					{
+						refillBoard();
+						_catchVases = false;
+					}
+				}
 			}
 		}
 		

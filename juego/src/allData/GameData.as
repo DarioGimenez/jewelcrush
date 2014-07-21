@@ -32,7 +32,9 @@ package allData
 		 **/
 		
 		public static const GAME_SCORE_BASE:int = 2;
-		public static const RESIZE_FACTOR:int = 0.33;
+		public static const GAME_SCORE_VASE:int = 10;
+		public static const MAX_COUNTDOWN_ONBOARD:int = 3;
+		public static const MAX_VASES_ONBOARD:int = 2;
 		
 		public var currentLevel:int;
 		public var musicActive:Boolean = true;

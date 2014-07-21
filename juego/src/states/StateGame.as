@@ -37,10 +37,10 @@ package states
 	import org.j2dm.system.input.IMouseStage;
 	import org.j2dm.system.input.J2DM_InputMouse;
 	
-	import states.game.modes.AbstractGameModeController;
 	import states.game.Ball;
 	import states.game.Board;
 	import states.game.Jewel;
+	import states.game.modes.AbstractGameModeController;
 	
 	import ui.GenericTextfield;
 	import ui.GenericWindow;
@@ -124,7 +124,8 @@ package states
 			
 			stopMusic();
 			
-			TweenLite.killDelayedCallsTo(addlines);
+			TweenLite.killDelayedCallsTo(gameOver);
+			TweenLite.killDelayedCallsTo(levelComplete);
 		}
 		
 		public override function update():void
@@ -132,18 +133,21 @@ package states
 			if(!_isPlaying)
 			{
 				return;
-			}
+			}	
 			
-			//timer
-			_leftTimer -= getTimer() - _lastTimer;
-			_lastTimer = getTimer();
-			
-			_timeBar.scaleX = (_leftTimer * 100 / _currentLevel.newLineTimer) / 100;
-			
-			if(_leftTimer <= 0)
+			if(_currentLevel.gameMode == Level.GAME_MODE_CLASSIC || _currentLevel.gameMode == Level.GAME_MODE_BOSS)
 			{
-				_leftTimer = _currentLevel.newLineTimer;
-				addlines();
+				//timer
+				_leftTimer -= getTimer() - _lastTimer;
+				_lastTimer = getTimer();
+				
+				_timeBar.scaleX = (_leftTimer * 100 / _currentLevel.newLineTimer) / 100;
+				
+				if(_leftTimer <= 0)
+				{
+					_leftTimer = _currentLevel.newLineTimer;
+					addlines();
+				}				
 			}
 		}
 		
@@ -174,6 +178,9 @@ package states
 		{
 			_container = new Sprite();
 			J2DM_Stage.getInstance().addElement(_container, J2DM_StageLayerTypes.INTERFACE, true);
+
+			//current level
+			_currentLevel = GameData.instance.getCurrentLevel();
 			
 			var bg:MovieClip = new A_MenuBackground();
 			_container.addChild(bg);
@@ -190,7 +197,7 @@ package states
 			_jewelContainer.y = frame.y;
 			_container.addChild(_jewelContainer);
 			
-			_board = new Board(_jewelContainer);
+			_board = new Board(_jewelContainer, _currentLevel);
 			_board.addEventListener(Board.EVENT_BOARD_IS_FULL, onBoardEvent);
 			_board.addEventListener(Board.EVENT_UPDATE_SCORE, onBoardEvent);
 			
@@ -215,9 +222,6 @@ package states
 			_timeBar.x = frame.x;
 			_timeBar.y = frame.y - 12;
 			_container.addChild(_timeBar);
-			
-			//current level
-			_currentLevel = GameData.instance.getCurrentLevel();
 			
 			//game mode controller
 			var gameModeContainer:Sprite = new Sprite();
@@ -319,7 +323,6 @@ package states
 		
 		private function init():void
 		{
-			_board.addNewLines(_currentLevel.initialLines);
 			_lastTimer = getTimer();
 			
 			_ball.ballType = getRandomBallType();
