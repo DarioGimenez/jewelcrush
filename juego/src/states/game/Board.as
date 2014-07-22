@@ -577,7 +577,7 @@ package states.game
 		
 		private function getRandomJewel(isRefill:Boolean = false):Jewel
 		{
-			var allJewels:Array = new Array(Jewel.TYPE_RED, Jewel.TYPE_BLUE, Jewel.TYPE_GREEN, Jewel.TYPE_VIOLET, Jewel.TYPE_ORANGE, Jewel.TYPE_YELLOW);
+			var allJewels:Vector.<String> = _currentLevel.jewels;
 			if(isRefill)
 			{
 				allJewels.push(Jewel.TYPE_VASE);
@@ -593,8 +593,11 @@ package states.game
 			var rnd:int = Math.random() * allJewels.length;
 			if(allJewels[rnd] == Jewel.TYPE_VASE && getCountJewelsByType(Jewel.TYPE_VASE) >= GameData.MAX_VASES_ONBOARD)
 			{
+				trace("cambio a otro")
 				allJewels.pop();
+				trace(allJewels)
 				rnd = Math.random() * allJewels.length;
+				trace(allJewels[rnd])
 			}
 
 			return new Jewel(allJewels[rnd]);

@@ -412,7 +412,7 @@ package states
 		
 		private function getRandomBallType():String
 		{
-			var colorBalls:Array = new Array(Ball.TYPE_RED, Ball.TYPE_BLUE, Ball.TYPE_GREEN, Ball.TYPE_VIOLET, Ball.TYPE_ORANGE, Ball.TYPE_YELLOW);
+			var colorBalls:Vector.<String> = _currentLevel.balls;
 			var rnd:int = Math.random() * colorBalls.length;
 			var chance:int = Math.random() * 100;
 			if(chance <= GameData.instance.getCurrentLevel().chanceColorBall)
