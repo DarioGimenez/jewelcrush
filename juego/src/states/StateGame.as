@@ -615,6 +615,12 @@ package states
 			_window.show();
 		}
 		
+		private function continueGame():void
+		{
+			_isPlaying = true;
+			_lastTimer = getTimer();
+		}
+		
 		private function activateBooster(type:String):void
 		{
 			disableBoosters();
@@ -687,7 +693,7 @@ package states
 					
 					break;
 				case ACTION_TYPE_PAUSE:
-					_isPlaying = true;
+					continueGame();
 					
 					break;
 			}
