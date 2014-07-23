@@ -189,7 +189,7 @@ package states.game
 			var cellPos:Point = convertGlobalPosition(hitPos);
 			var cell:BoardCell = getCell(cellPos);
 			
-			if(cell && cell.jewel && cell.jewel.jewelType == Jewel.TYPE_COUNT_DOWN)
+			if(cell && cell.jewel && cell.jewel.jewelType == Jewel.TYPE_COUNT_DOWN && ballType != Ball.TYPE_BOMB)
 			{
 				changeCommonType(cell)
 				return;
@@ -387,7 +387,7 @@ package states.game
 		
 		private function applyBoosterBomb(cell:BoardCell):void
 		{
-			_selectedCells = getAdyacentCells(cell, 2);
+			_selectedCells = getAdyacentCells(cell, 1);
 		}
 		
 		private function applyBoosterColor(cell:BoardCell):void
@@ -412,7 +412,7 @@ package states.game
 		
 		private function applyBoosterChangeType(cell:BoardCell):void
 		{
-			var auxCells:Vector.<BoardCell> = getAdyacentCells(cell, 2);
+			var auxCells:Vector.<BoardCell> = getAdyacentCells(cell, 1);
 			for each(var auxCell:BoardCell in auxCells)
 			{
 				if(auxCell.jewel != null)
@@ -507,13 +507,13 @@ package states.game
 		
 		private function calcScore():void
 		{
-			_lastScore = _selectedCells.length * GameData.GAME_SCORE_BASE;
+			_lastScore = Math.pow(GameData.GAME_SCORE_BASE, _selectedCells.length);
 			_score += _lastScore;
 		}
 		
 		private function calcScoreVase():void
 		{
-			_lastScore = _selectedCells.length * GameData.GAME_SCORE_VASE;
+			_lastScore = Math.pow(GameData.GAME_SCORE_VASE, _selectedCells.length);
 			_score += _lastScore;
 		}
 		

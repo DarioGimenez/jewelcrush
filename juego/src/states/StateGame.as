@@ -674,7 +674,6 @@ package states
 		{
 			levelComplete();
 		}
-			
 		
 		private function windowButtonEvent(event:Event):void
 		{

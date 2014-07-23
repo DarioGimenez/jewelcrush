@@ -4,6 +4,8 @@ package states
 	import allData.Level;
 	import allData.Levels;
 	
+	import event.CustomEvent;
+	
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.MouseEvent;
@@ -24,6 +26,8 @@ package states
 	import org.j2dm.stage.J2DM_Stage;
 	import org.j2dm.stage.J2DM_StageLayerTypes;
 	
+	import states.selectLevel.WindowSelectLevel;
+	
 	import ui.GenericTextfield;
 	
 	public class StateSelectLevel extends J2DM_AbstractState
@@ -34,6 +38,8 @@ package states
 		private var _container:Sprite;
 		private var _btnBack:J2DM_GenericButtonWithText;
 		private var _buttons:Vector.<J2DM_GenericButtonWithText>;
+		
+		private var _windowSelectLevel:WindowSelectLevel;
 		
 		private var _music:Sound;
 		private var _musicChannel:SoundChannel;
@@ -48,6 +54,9 @@ package states
 			super.destroy();
 			
 			J2DM_Stage.getInstance().removeElement(_container, J2DM_StageLayerTypes.INTERFACE);
+			
+			_windowSelectLevel.removeEventListener(WindowSelectLevel.EVENT_WINDOW_OK, onWindowEvent);
+			_windowSelectLevel.destroy();
 			
 			stopMusic();
 			
@@ -125,6 +134,10 @@ package states
 			containerLevels.y = 100;
 			_container.addChild(containerLevels);
 			
+			//window
+			_windowSelectLevel = new WindowSelectLevel();
+			_windowSelectLevel.addEventListener(WindowSelectLevel.EVENT_WINDOW_OK, onWindowEvent);
+			
 			//button 
 			var btnSource:MovieClip = new A_GenericButton();
 			btnSource.scaleX = 0.75;
@@ -162,6 +175,11 @@ package states
 			_musicChannel = null;
 		}
 		
+		private function onWindowEvent(e:CustomEvent):void
+		{
+			_gameLoop.changeState(StateGame);
+		}
+		
 		private function buttonCallback(type:String, button:J2DM_GenericButton):void
 		{
 			switch(type)
@@ -176,7 +194,8 @@ package states
 						default:
 							var lvl:int = button.id.split("_")[1];
 							GameData.instance.currentLevel = lvl;
-							_gameLoop.changeState(StateGame);
+							_windowSelectLevel.loadLevel(GameData.instance.getCurrentLevel());
+							//_gameLoop.changeState(StateGame);
 							
 							break;
 					}
