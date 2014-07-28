@@ -3,6 +3,7 @@ package states
 	import allData.GameData;
 	import allData.Level;
 	import allData.Levels;
+	import allData.SoundController;
 	
 	import event.CustomEvent;
 	
@@ -41,9 +42,6 @@ package states
 		
 		private var _windowSelectLevel:WindowSelectLevel;
 		
-		private var _music:Sound;
-		private var _musicChannel:SoundChannel;
-		
 		public function StateSelectLevel(params:J2DM_AbstractStateParameters)
 		{
 			super(params);
@@ -57,8 +55,6 @@ package states
 			
 			_windowSelectLevel.removeEventListener(WindowSelectLevel.EVENT_WINDOW_OK, onWindowEvent);
 			_windowSelectLevel.destroy();
-			
-			stopMusic();
 			
 			_btnBack.destroy();
 			
@@ -147,34 +143,11 @@ package states
 			_btnBack = new J2DM_GenericButtonWithText("back", btnSource, "Back", buttonCallback);
 			_container.addChild(btnSource);
 						
-			playMusic();
+			SoundController.instance.playMusic(SoundController.MUSIC_MENU);
 			
 			J2DM_Stage.getInstance().addElement(_container, J2DM_StageLayerTypes.INTERFACE, true);
 		}
-		
-		private function playMusic():void
-		{
-			if(!GameData.instance.musicActive)
-			{
-				return;
-			}
-			
-			_music = new A_MenuMusic();
-			_musicChannel = _music.play(0, 99);
-		}
-		
-		private function stopMusic():void
-		{
-			if(_music == null)
-			{
-				return;
-			}
-			
-			_musicChannel.stop();
-			_music = null;
-			_musicChannel = null;
-		}
-		
+				
 		private function onWindowEvent(e:CustomEvent):void
 		{
 			_gameLoop.changeState(StateGame);

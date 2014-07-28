@@ -3,6 +3,7 @@ package states.game
 	import allData.GameData;
 	import allData.Level;
 	import allData.Levels;
+	import allData.SoundController;
 	
 	import com.greensock.TweenLite;
 	import com.greensock.easing.Linear;
@@ -42,7 +43,6 @@ package states.game
 		private var _score:int;
 		private var _lastScore:int;
 		
-		private var _hitCellFx:Sound;
 		private var _catchVases:Boolean;
 		
 		public function Board(container:Sprite, currentLevel:Level)
@@ -184,6 +184,26 @@ package states.game
 			dispatchEvent(e);
 		}
 		
+		public function clearLinesFromTop(q:int):void
+		{
+			var row:Vector.<BoardCell>;
+			var cell:BoardCell;
+			for(var yy:int = 0; yy < q; yy++)
+			{
+				row = _cells[yy];
+				for(var xx:int = 0; xx < row.length; xx++)
+				{
+					cell = row[xx];
+					if(cell.jewel != null)
+					{
+						_selectedCells.push(cell);
+					}
+				}
+			}
+			
+			clearSelectedCells();
+		}
+		
 		public function hitCell(hitPos:Point, ballType:String):void
 		{
 			var cellPos:Point = convertGlobalPosition(hitPos);
@@ -191,7 +211,8 @@ package states.game
 			
 			if(cell && cell.jewel && cell.jewel.jewelType == Jewel.TYPE_COUNT_DOWN && ballType != Ball.TYPE_BOMB)
 			{
-				changeCommonType(cell)
+				changeCommonType(cell);
+				SoundController.instance.playSoundFx(SoundController.FX_HIT_CELL);
 				return;
 			}
 			
@@ -229,10 +250,7 @@ package states.game
 			clearSelectedCells();
 			TweenLite.delayedCall(0.2, animateLines);
 			
-			if(GameData.instance.musicActive)
-			{
-				_hitCellFx.play();
-			}
+			SoundController.instance.playSoundFx(SoundController.FX_HIT_CELL);
 		}
 				
 		private function build():void
@@ -259,7 +277,6 @@ package states.game
 			
 			_score = 0;
 			_catchVases = false;
-			_hitCellFx = new A_HitCellFx();
 			
 			if(_currentLevel.gameMode == Level.GAME_MODE_QUEST)
 			{
@@ -593,11 +610,8 @@ package states.game
 			var rnd:int = Math.random() * allJewels.length;
 			if(allJewels[rnd] == Jewel.TYPE_VASE && getCountJewelsByType(Jewel.TYPE_VASE) >= GameData.MAX_VASES_ONBOARD)
 			{
-				trace("cambio a otro")
 				allJewels.pop();
-				trace(allJewels)
 				rnd = Math.random() * allJewels.length;
-				trace(allJewels[rnd])
 			}
 
 			return new Jewel(allJewels[rnd]);

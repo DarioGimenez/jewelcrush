@@ -3,6 +3,7 @@ package states
 	import allData.GameData;
 	import allData.Level;
 	import allData.Levels;
+	import allData.SoundController;
 	
 	import com.greensock.TimelineLite;
 	import com.greensock.TweenLite;
@@ -41,6 +42,8 @@ package states
 	import states.game.Board;
 	import states.game.Jewel;
 	import states.game.modes.AbstractGameModeController;
+	import states.game.windows.WindowContinuePlaying;
+	import states.game.windows.WindowPause;
 	
 	import ui.GenericTextfield;
 	import ui.GenericWindow;
@@ -50,7 +53,6 @@ package states
 		public static const ACTION_TYPE_PAUSE:int = 0;
 		public static const ACTION_TYPE_GAME_OVER:int = 1;
 		public static const ACTION_TYPE_LEVEL_COMPLETE:int = 2;
-		public static const ACTION_TYPE_GAME_MODE_COMPLETE:int = 3;
 		
 		private var _container:Sprite;
 		private var _trailCanvas:Sprite;
@@ -65,7 +67,6 @@ package states
 		private var _btnBoosterPointer:J2DM_GenericCheckBoxWithText;
 		
 		private var _btnPause:J2DM_GenericButtonWithText;
-		private var _btnQuit:J2DM_GenericButtonWithText;
 		
 		private var _ballFx:TimelineLite;
 		private var _moveBallFx:TweenLite;
@@ -81,16 +82,13 @@ package states
 		private var _tfQBalls:GenericTextfield;
 		private var _currentBalls:int;
 		
-		private var _releaseBallFx:Sound;
-		
-		private var _music:Sound;
-		private var _musicChannel:SoundChannel;
-		
 		private var _score:int;
 		private var _leftTimer:int;
 		private var _lastTimer:int;
 		
 		private var _window:GenericWindow;
+		private var _pauseWindow:WindowPause;
+		private var _continueWindow:WindowContinuePlaying;
 		
 		private var _isPlaying:Boolean;
 		private var _currentLevel:Level;
@@ -119,9 +117,18 @@ package states
 			_ball.removeEventListener(Ball.EVENT_RELEASE_BALL, onBallEvents);
 			_ball.removeEventListener(Ball.EVENT_TRAIL_BALL, onBallEvents);
 			
-			_window.removeEventListener(GenericWindow.EVENT_WINDOW_ACTION, windowButtonEvent);
+			_continueWindow.destroy();
+			_continueWindow.removeEventListener(WindowContinuePlaying.EVENT_WINDOW_PLAY, windowContinueEvent);
+			_continueWindow.removeEventListener(WindowContinuePlaying.EVENT_WINDOW_CANCEL, windowContinueEvent);
+
 			
+			_pauseWindow.removeEventListener(WindowPause.EVENT_WINDOW_CONTINUE, windowPauseEvent);
+			_pauseWindow.removeEventListener(WindowPause.EVENT_WINDOW_QUIT, windowPauseEvent);
+			_pauseWindow.destroy();
+			
+			_window.removeEventListener(GenericWindow.EVENT_WINDOW_ACTION, windowButtonEvent);
 			_window.destroy();
+			
 			_ball.destroy();
 			_board.destroy();
 			
@@ -135,9 +142,6 @@ package states
 			_btnBoosterLineCleaner.destroy();
 			_btnBoosterPointer.destroy();
 			_btnPause.destroy();
-			_btnQuit.destroy();
-			
-			stopMusic();
 			
 			TweenLite.killDelayedCallsTo(gameOver);
 			TweenLite.killDelayedCallsTo(levelComplete);
@@ -292,17 +296,7 @@ package states
 			clip.y = 5;
 			_container.addChild(clip);
 			
-			_btnPause = new J2DM_GenericButtonWithText("pause", clip, "//", pauseButtonEvent);
-			
-			//quit
-			clip = new A_LevelButtonClassic();
-			clip.scaleX = 0.5;
-			clip.scaleY = 0.5;
-			clip.x = _btnPause.source.width + 10;
-			clip.y = 5;
-			_container.addChild(clip);
-			
-			_btnQuit = new J2DM_GenericButtonWithText("pause", clip, "X", pauseButtonEvent);
+			_btnPause = new J2DM_GenericButtonWithText("pause", clip, "||", pauseButtonEvent);
 			
 			//booster line cleaner
 			clip = new A_BoosterButton();
@@ -358,9 +352,16 @@ package states
 			_window = new GenericWindow();
 			_window.addEventListener(GenericWindow.EVENT_WINDOW_ACTION, windowButtonEvent);
 			
+			_continueWindow = new WindowContinuePlaying();
+			_continueWindow.addEventListener(WindowContinuePlaying.EVENT_WINDOW_PLAY, windowContinueEvent);
+			_continueWindow.addEventListener(WindowContinuePlaying.EVENT_WINDOW_CANCEL, windowContinueEvent);
+			
+			_pauseWindow = new WindowPause();
+			_pauseWindow.addEventListener(WindowPause.EVENT_WINDOW_CONTINUE, windowPauseEvent);
+			_pauseWindow.addEventListener(WindowPause.EVENT_WINDOW_QUIT, windowPauseEvent);
+			
 			//music
-			_releaseBallFx = new A_ReleaseBallFx();
-			playMusic();
+			SoundController.instance.playMusic(SoundController.MUSIC_GAME);
 			
 			_container.setChildIndex(_ball, _container.numChildren - 2);
 		}
@@ -384,30 +385,6 @@ package states
 			_leftTimer = _currentLevel.newLineTimer;
 			
 			_isPlaying = true;
-		}
-		
-		private function playMusic():void
-		{
-			if(!GameData.instance.musicActive)
-			{
-				return;
-			}
-			
-			_music = new A_GameMusic();
-			_musicChannel = _music.play(0, 99);
-			_musicChannel.soundTransform= new SoundTransform(0.5);
-		}
-		
-		private function stopMusic():void
-		{
-			if(_music == null)
-			{
-				return;
-			}
-			
-			_musicChannel.stop();
-			_music = null;
-			_musicChannel = null;
 		}
 		
 		private function getRandomBallType():String
@@ -476,10 +453,8 @@ package states
 				_tfQBalls.text = String(_currentBalls);	
 			}
 			
-			if(GameData.instance.musicActive)
-			{
-				_releaseBallFx.play();
-			}
+			SoundController.instance.playSoundFx(SoundController.FX_RELEASE_BALL);
+			
 		}
 		private function getFinalPosition():Object
 		{
@@ -584,11 +559,7 @@ package states
 		private function gameOver():void
 		{
 			_isPlaying = false;
-			
-			_actionType = ACTION_TYPE_GAME_OVER;
-			_window.setText("Level\nFailed");
-			_window.setButtonText("Back");
-			_window.show();
+			_continueWindow.show();
 		}
 		
 		private function boardRady():void
@@ -608,17 +579,33 @@ package states
 		private function pauseGame():void
 		{
 			_isPlaying = false;
-			
-			_actionType = ACTION_TYPE_PAUSE;
-			_window.setText("PAUSE");
-			_window.setButtonText("Ok");
-			_window.show();
+			_pauseWindow.show();
 		}
 		
 		private function continueGame():void
 		{
 			_isPlaying = true;
 			_lastTimer = getTimer();
+		}
+		
+		private function continuePlaying():void
+		{
+			continueGame();
+			
+			switch(_currentLevel.gameMode)
+			{
+				case Level.GAME_MODE_CLASSIC:
+				case Level.GAME_MODE_BOSS:
+					_board.clearLinesFromTop(5);
+					
+					break;
+				case Level.GAME_MODE_QUEST:
+					_currentBalls = 5;
+					_tfQBalls.text = String(_currentBalls);
+					_ball.dragEnable = true;
+					
+					break;
+			}
 		}
 		
 		private function activateBooster(type:String):void
@@ -675,6 +662,36 @@ package states
 			levelComplete();
 		}
 		
+		private function windowContinueEvent(e:CustomEvent):void
+		{
+			switch(e.type)
+			{
+				case WindowContinuePlaying.EVENT_WINDOW_PLAY:
+					continuePlaying();
+					
+					break;
+				case WindowContinuePlaying.EVENT_WINDOW_CANCEL:
+					_gameLoop.changeState(StateMenu);
+					
+					break;
+			}
+		}
+		
+		private function windowPauseEvent(e:CustomEvent):void
+		{
+			switch(e.type)
+			{
+				case WindowPause.EVENT_WINDOW_CONTINUE:
+					continueGame();
+					
+					break;
+				case WindowPause.EVENT_WINDOW_QUIT:
+					_gameLoop.changeState(StateMenu);
+					
+					break;
+			}
+		}
+		
 		private function windowButtonEvent(event:Event):void
 		{
 			switch(_actionType)
@@ -685,14 +702,6 @@ package states
 					break;
 				case ACTION_TYPE_LEVEL_COMPLETE:
 					_gameLoop.changeState(StateMenu);
-					
-					break;
-				case ACTION_TYPE_GAME_MODE_COMPLETE:
-					_gameLoop.changeState(StateMenu);
-					
-					break;
-				case ACTION_TYPE_PAUSE:
-					continueGame();
 					
 					break;
 			}
@@ -751,10 +760,6 @@ package states
 					{
 						case _btnPause:
 							pauseGame();
-							
-							break;
-						case _btnQuit:
-							_gameLoop.changeState(StateMenu);;
 							
 							break;
 					}

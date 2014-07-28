@@ -1,6 +1,7 @@
 package states
 {
 	import allData.GameData;
+	import allData.SoundController;
 	
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
@@ -21,10 +22,8 @@ package states
 	{
 		private var _container:Sprite;
 		private var _btnEndlessMode:J2DM_GenericButtonWithText;
+		private var _btnMusic:J2DM_GenericCheckBox;
 		private var _btnSound:J2DM_GenericCheckBox;
-		
-		private var _music:Sound;
-		private var _musicChannel:SoundChannel;
 		
 		public function StateMenu(params:J2DM_AbstractStateParameters)
 		{
@@ -38,9 +37,8 @@ package states
 			J2DM_Stage.getInstance().removeElement(_container, J2DM_StageLayerTypes.INTERFACE);
 			
 			_btnEndlessMode.destroy(); 
+			_btnMusic.destroy();
 			_btnSound.destroy();
-			
-			stopMusic();
 		}
 		
 		protected override function create():void
@@ -64,44 +62,27 @@ package states
 			_container.addChild(clip);
 			_btnEndlessMode = new J2DM_GenericButtonWithText("endless", clip, "PLAY", buttonCallback);
 			
-			GameData.instance.musicActive = false;
-			
-			//sound
-			clip = new A_SoundButton();
+			//music
+			clip = new A_MusicButton();
 			clip.x = 10;
 			clip.y = 10;
 			_container.addChild(clip);
-			_btnSound = new J2DM_GenericCheckBox("sound", clip, "y", buttonCallback);
-			_btnSound.checked = GameData.instance.musicActive;
+			_btnMusic = new J2DM_GenericCheckBox("music", clip, "y", buttonCallback);
+			_btnMusic.checked = SoundController.instance.musicActive;
 			
-			playMusic();
+			//sound
+			clip = new A_SoundButton();
+			clip.x = _btnMusic.source.x + _btnMusic.source.width + 10;
+			clip.y = 10;
+			_container.addChild(clip);
+			_btnSound = new J2DM_GenericCheckBox("sound", clip, "y", buttonCallback);
+			_btnSound.checked = SoundController.instance.soundFxActive;
+			
+			SoundController.instance.playMusic(SoundController.MUSIC_MENU);
 			
 			J2DM_Stage.getInstance().addElement(_container, J2DM_StageLayerTypes.INTERFACE, true);
 		}
 		
-		
-		private function playMusic():void
-		{
-			if(!GameData.instance.musicActive)
-			{
-				return;
-			}
-			
-			_music = new A_MenuMusic();
-			_musicChannel = _music.play(0, 99);
-		}
-		
-		private function stopMusic():void
-		{
-			if(_music == null)
-			{
-				return;
-			}
-			
-			_musicChannel.stop();
-			_music = null;
-			_musicChannel = null;
-		}
 		
 		private function buttonCallback(type:String, button:J2DM_GenericButton):void
 		{
@@ -114,16 +95,12 @@ package states
 							_gameLoop.changeState(StateSelectLevel);
 							
 							break;
-						case _btnSound:
-							GameData.instance.musicActive = _btnSound.checked;
-							if(GameData.instance.musicActive)
-							{
-								playMusic();
-							}else
-							{
-								stopMusic();
-							}
+						case _btnMusic:
+							SoundController.instance.musicActive = _btnMusic.checked;
 							
+							break;
+						case _btnSound:
+							SoundController.instance.soundFxActive = _btnSound.checked;
 							
 							break;
 					}

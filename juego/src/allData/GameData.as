@@ -37,7 +37,6 @@ package allData
 		public static const MAX_VASES_ONBOARD:int = 2;
 		
 		public var currentLevel:int;
-		public var musicActive:Boolean = true;
 		
 		public function getCurrentLevel():Level
 		{
