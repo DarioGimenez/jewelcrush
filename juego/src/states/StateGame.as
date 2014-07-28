@@ -54,7 +54,7 @@ package states
 		public static const ACTION_TYPE_GAME_OVER:int = 1;
 		public static const ACTION_TYPE_LEVEL_COMPLETE:int = 2;
 		
-		private var _container:Sprite;
+		private var _source:MovieClip;
 		private var _trailCanvas:Sprite;
 		private var _jewelContainer:Sprite;
 		private var _board:Board;
@@ -74,12 +74,12 @@ package states
 		
 		private var _timeBar:Sprite;
 		
-		private var _flyingScoreCont:Sprite;
-		private var _flyingScore:GenericTextfield;
+		private var _flyingScoreCont:MovieClip;
+		private var _flyingScore:TextField;
 
-		private var _tfScore:GenericTextfield;
+		private var _tfScore:TextField;
 		
-		private var _tfQBalls:GenericTextfield;
+		private var _tfQBalls:TextField;
 		private var _currentBalls:int;
 		
 		private var _score:int;
@@ -106,7 +106,7 @@ package states
 		
 		public override function destroy():void
 		{
-			J2DM_Stage.getInstance().removeElement(_container, J2DM_StageLayerTypes.INTERFACE);
+			J2DM_Stage.getInstance().removeElement(_source, J2DM_StageLayerTypes.INTERFACE);
 			J2DM_InputMouse.getInstance().unsuscribeStage(this);
 			
 			_gameModeController.destroy();
@@ -120,7 +120,6 @@ package states
 			_continueWindow.destroy();
 			_continueWindow.removeEventListener(WindowContinuePlaying.EVENT_WINDOW_PLAY, windowContinueEvent);
 			_continueWindow.removeEventListener(WindowContinuePlaying.EVENT_WINDOW_CANCEL, windowContinueEvent);
-
 			
 			_pauseWindow.removeEventListener(WindowPause.EVENT_WINDOW_CONTINUE, windowPauseEvent);
 			_pauseWindow.removeEventListener(WindowPause.EVENT_WINDOW_QUIT, windowPauseEvent);
@@ -197,26 +196,18 @@ package states
 		
 		private function buildScreen():void
 		{
-			_container = new Sprite();
-			J2DM_Stage.getInstance().addElement(_container, J2DM_StageLayerTypes.INTERFACE, true);
+			_source = new A_ScreenGame();
+			J2DM_Stage.getInstance().addElement(_source, J2DM_StageLayerTypes.INTERFACE, true);
 
 			//current level
 			_currentLevel = GameData.instance.getCurrentLevel();
 			
-			var bg:MovieClip = new A_MenuBackground();
-			_container.addChild(bg);
-			
-			var frame:MovieClip = new A_Frame();
-			frame.x = 100;
-			frame.y = 50;
-			frame.width = Board.BOARD_CELL_W * Board.BOARD_MAX_W;
-			frame.height = Board.BOARD_CELL_H * Board.BOARD_MAX_H;
-			_container.addChild(frame);
+			var frame:MovieClip = _source.getChildByName("mcFrame") as MovieClip;
 			
 			_jewelContainer = new Sprite();
 			_jewelContainer.x = frame.x;
 			_jewelContainer.y = frame.y;
-			_container.addChild(_jewelContainer);
+			_source.addChild(_jewelContainer);
 			
 			_board = new Board(_jewelContainer, _currentLevel);
 			_board.addEventListener(Board.EVENT_BOARD_IS_FULL, onBoardEvent);
@@ -230,21 +221,13 @@ package states
 			_ball.addEventListener(Ball.EVENT_TRAIL_BALL, onBallEvents);
 			_ball.addEventListener(Ball.EVENT_RELEASE_BALL, onBallEvents);
 			_ball.initialPos = new Point(ballx, bally);
-			_container.addChild(_ball);
+			_source.addChild(_ball);
 			
 			_trailCanvas = new Sprite();
-			_container.addChild(_trailCanvas);
+			_source.addChild(_trailCanvas);
 			
-			var timeBarBg:Sprite = createBar(frame.width, 10, 0xFF0000, 0.25);
-			timeBarBg.x = frame.x;
-			timeBarBg.y = frame.y - 12;
-			_container.addChild(timeBarBg);
-			
-			_timeBar = createBar(frame.width, 10, 0xFF0000, 1);
-			_timeBar.x = frame.x;
-			_timeBar.y = frame.y - 12;
-			_container.addChild(_timeBar);
-			
+			var timeBarBg:MovieClip= _source.getChildByName("mcTimeBar") as MovieClip;
+			_timeBar = timeBarBg.getChildByName("mcTimeBar") as MovieClip;
 			if(_currentLevel.gameMode == Level.GAME_MODE_QUEST)
 			{
 				_timeBar.visible = false;
@@ -255,98 +238,67 @@ package states
 			var gameModeContainer:Sprite = new Sprite();
 			gameModeContainer.x = 5;
 			gameModeContainer.y = 100;
-			_container.addChild(gameModeContainer);
+			_source.addChild(gameModeContainer);
 			
 			_gameModeController = AbstractGameModeController.getGameModeController(_currentLevel.gameMode);
 			_gameModeController.init(gameModeContainer, _currentLevel.levelConfig);
 			_gameModeController.addEventListener(AbstractGameModeController.EVENT_LEVEL_COMPLETE, onGameControllerEvent);
 			
 			//score tf
-			_tfScore = new GenericTextfield(new A_Font1().fontName, 0xFFFFFF, TextFieldAutoSize.RIGHT, 35);
-			_tfScore.text = "0";
-			_tfScore.x = frame.x - _tfScore.width - 5;
-			_tfScore.y = frame.y - 5;
-			_container.addChild(_tfScore);
+			_tfScore = _source.getChildByName("tfScore") as TextField;
 			
 			//Q balls
 			_currentBalls = _currentLevel.maxBalls;
-			
-			_tfQBalls = new GenericTextfield(new A_Font1().fontName, 0x000000, TextFieldAutoSize.RIGHT, 35);
+			_tfQBalls = _source.getChildByName("tfQBalls") as TextField;
 			_tfQBalls.visible = _currentLevel.gameMode == Level.GAME_MODE_QUEST;
 			_tfQBalls.text = String(_currentBalls);
-			_tfQBalls.x = _ball.initialPos.x + 20;
-			_tfQBalls.y = _ball.initialPos.y + 20;
-			_container.addChild(_tfQBalls);
+			_tfQBalls.mouseEnabled = false;
+			_tfQBalls.x = _ball.initialPos.x + 30;
+			_tfQBalls.y = _ball.initialPos.y + 30;
 			
 			//flying score
-			_flyingScoreCont = new Sprite();
-			_container.addChild(_flyingScoreCont);
+			_flyingScoreCont = _source.getChildByName("mcFlyingScore") as MovieClip;
+			_flyingScore = _flyingScoreCont.getChildByName("tfFlyingScore") as TextField;
+			_flyingScoreCont.alpha = 0;
+			_flyingScoreCont.mouseEnabled = false;
+			_flyingScoreCont.mouseChildren = false;
 			
-			_flyingScore = new GenericTextfield(new A_Font1().fontName, 0xFFFFFF, TextAlign.CENTER, 50);
-			_flyingScoreCont.addChild(_flyingScore);
-			
-			//booster buttons
+			//buttons
 			var clip:MovieClip;
 			
 			//pause
-			clip = new A_LevelButtonClassic();
-			clip.scaleX = 0.5;
-			clip.scaleY = 0.5;
-			clip.x = 5;
-			clip.y = 5;
-			_container.addChild(clip);
-			
+			clip = _source.getChildByName("btnPause") as MovieClip;
 			_btnPause = new J2DM_GenericButtonWithText("pause", clip, "||", pauseButtonEvent);
 			
 			//booster line cleaner
-			clip = new A_BoosterButton();
-			clip.x = frame.x;
-			clip.y = J2DM_Stage.getInstance().realStage.stageHeight - clip.height - 15;
-			_container.addChild(clip);
-			
+			clip = _source.getChildByName("btnBoosterLineCleaner") as MovieClip;
 			_btnBoosterLineCleaner = new J2DM_GenericCheckBoxWithText("bLineCleaner", clip, "1", "", boosterCallback);
 			_btnBoosterLineCleaner.disabledAlpha = 1;
 			
 			//booster bomb
-			clip = new A_BoosterButton();
-			clip.x = _btnBoosterLineCleaner.source.x + _btnBoosterLineCleaner.source.width + 15;
-			clip.y = J2DM_Stage.getInstance().realStage.stageHeight - clip.height - 15;
-			_container.addChild(clip);
-			
+			clip = _source.getChildByName("btnBoosterBomb") as MovieClip;
 			_btnBoosterBomb = new J2DM_GenericCheckBoxWithText("bbomb", clip, "2", "", boosterCallback);
 			_btnBoosterBomb.disabledAlpha = 1;
 			
 			//booster color
-			clip = new A_BoosterButton();
-			clip.x = _btnBoosterBomb.source.x + _btnBoosterBomb.source.width + 15;
-			clip.y = J2DM_Stage.getInstance().realStage.stageHeight - clip.height - 15;
-			_container.addChild(clip);
-			
+			clip = _source.getChildByName("btnBoosterColorCleaner") as MovieClip;
 			_btnBoosterColor = new J2DM_GenericCheckBoxWithText("bcolor", clip, "3", "", boosterCallback);
 			_btnBoosterColor.disabledAlpha = 1;
 			
 			//booster change type
-			clip = new A_BoosterButton();
-			clip.x = _btnBoosterColor.source.x + _btnBoosterColor.source.width + 15;
-			clip.y = J2DM_Stage.getInstance().realStage.stageHeight - clip.height - 15;
-			_container.addChild(clip);
-			
+			clip = _source.getChildByName("btnBoosterChangeType") as MovieClip;
 			_btnBoosterChangeType = new J2DM_GenericCheckBoxWithText("btype", clip, "4", "", boosterCallback);
 			_btnBoosterChangeType.disabledAlpha = 1;
 			
 			//booster pointer
-			clip = new A_BoosterButton();
-			clip.x = _btnBoosterChangeType.source.x + _btnBoosterChangeType.source.width + 15;
-			clip.y = J2DM_Stage.getInstance().realStage.stageHeight - clip.height - 15;
-			_container.addChild(clip);
-			
+			clip = _source.getChildByName("btnBoosterPointer") as MovieClip;
 			_btnBoosterPointer = new J2DM_GenericCheckBoxWithText("bpointer", clip, "5", "", boosterCallback);
 			_btnBoosterPointer.disabledAlpha = 1;
 			
 			//pointer
 			_pointer = new A_Pointer();
 			_pointer.visible = false;
-			_container.addChild(_pointer);
+			_source.addChild(_pointer);
 			
 			//window
 			_window = new GenericWindow();
@@ -363,7 +315,8 @@ package states
 			//music
 			SoundController.instance.playMusic(SoundController.MUSIC_GAME);
 			
-			_container.setChildIndex(_ball, _container.numChildren - 2);
+			_source.setChildIndex(_ball, _source.numChildren - 2);
+			_source.setChildIndex(_flyingScoreCont, _source.numChildren - 1);
 		}
 		
 		private function createBar(w:int, h:int, color:int, alpha:Number):Sprite
